@@ -46,7 +46,7 @@
         };
         volumes = ["/var/run/docker.sock:/var/run/docker.sock"];
         log-driver = "journald";
-        environmentFiles = [] ++ lib.optionals (cfg.envFilePath != null) cfg.envFilePath;
+        environmentFiles = [] ++ lib.optionals (cfg.envFilePath != null) [cfg.envFilePath];
       };
       zelec-core.virtualisation.dockerManager.watchtower = {
         containerNames = [

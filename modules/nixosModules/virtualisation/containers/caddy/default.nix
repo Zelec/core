@@ -328,7 +328,7 @@
             "--network=${cfg.dockerNetworkName}"
             "--add-host=host.docker.internal:host-gateway"
           ];
-          environmentFiles = [] ++ lib.optionals (cfg.envFilePath != null) cfg.envFilePath;
+          environmentFiles = [] ++ lib.optionals (cfg.envFilePath != null) [cfg.envFilePath];
         };
       };
   };
