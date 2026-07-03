@@ -95,6 +95,9 @@
         vscodium.enable = true;
         wine = {enable = isX86;};
       };
+      security = {
+        tpm2.enable = true;
+      };
       services = {
         beszel-agent = {
           enable = true;
@@ -178,6 +181,7 @@
         containers = {
           caddy = {
             enable = true;
+            envFilePath = toString pkgs.emptyFile;
             subsites = {
               webfinger.enable = true;
             };
@@ -193,7 +197,10 @@
           };
           plex.enable = true;
           vlmcsd.enable = true;
-          watchtower.enable = true;
+          watchtower = {
+            enable = true;
+            envFilePath = toString pkgs.emptyFile;
+          };
         };
         docker = {
           enable = true;
