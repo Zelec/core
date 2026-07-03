@@ -119,12 +119,12 @@
     lib,
     ...
   }: let
-    cfg = config.zelec-core.btrbk-mass-backup;
+    cfg = config.zelec-core.services.btrbk-mass-backup;
     mapperFullName = "/dev/mapper/${cfg.mapperName}";
     configJson = pkgs.writeText "btrbk-mass-backup-config.json" (builtins.toJSON cfg.volumes);
     backupBin = "${lib.getExe self.packages.${pkgs.stdenv.hostPlatform.system}.btrbk-mass-backup} --config ${configJson} --mount-point ${cfg.mountPoint} --mapper ${mapperFullName}";
   in {
-    options.zelec-core.btrbk-mass-backup = {
+    options.zelec-core.services.btrbk-mass-backup = {
       enable = lib.mkOption {
         type = lib.types.bool;
         example = false;
