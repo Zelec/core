@@ -1,0 +1,21 @@
+{
+  "/media/btrfsroots/root/snapshots/archive": {
+    "Chronos": {
+      "/media/btrfsroots/root/snapshots/local": [
+        "@home",
+        "@log",
+        "@rootfs"
+      ],
+      "/media/btrfsroots/root/snapshots/test": [
+        "@test",
+        "@test2"
+      ]
+    },
+    "Chronos-Test": {
+      "/media/btrfsroots/root/snapshots/test": [
+        "@test",
+        "@test2"
+      ]
+    }
+  }
+}

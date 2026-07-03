@@ -1,0 +1,14 @@
+name: 'Setup Nix'
+description: 'Install Nix and Setup Attic Cache'
+inputs:
+  github_token:
+    description: 'Github Auth Token'
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Nix Tooling Setup
+      shell: bash 
+      run: |
+        echo "accept-flake-config = true" | sudo tee -a /etc/nix/nix.conf > /dev/null
+        echo "access-tokens = github.com=${{ inputs.github_token }}" | sudo tee -a /etc/nix/nix.conf > /dev/null

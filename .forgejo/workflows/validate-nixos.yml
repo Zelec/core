@@ -1,0 +1,44 @@
+name: Nix Flake Validation
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    # Only run if nix files, the lockfile, or secrets change
+    paths:
+      - "**.nix"
+      - "flake.lock"
+      - "**.yml"
+      - "**.yaml"
+  pull_request:
+    branches:
+      - main
+    # Only run if nix files, the lockfile, or secrets change
+    paths:
+      - "**.nix"
+      - "flake.lock"
+      - "**.yml"
+      - "**.yaml"
+jobs:
+  validate-amd64:
+    runs-on: nix-container-builder-x86_64-linux
+    steps:
+      - name: Checkout Code
+        uses: https://github.com/actions/checkout@v6
+      - name: Run Prereqs
+        uses: ./.forgejo/workflows-composite/setup-nix
+        with:
+          github_token: ${{ secrets.PAT_GITHUB }}
+      - name: Verify Flake Metadata
+        run: nix flake check --accept-flake-config
+  validate-arm64:
+    runs-on: nix-container-builder-aarch64-linux
+    steps:
+      - name: Checkout Code
+        uses: https://github.com/actions/checkout@v6
+      - name: Run Prereqs
+        uses: ./.forgejo/workflows-composite/setup-nix
+        with:
+          github_token: ${{ secrets.PAT_GITHUB }}
+      - name: Verify Flake Metadata
+        run: nix flake check --accept-flake-config
