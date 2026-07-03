@@ -9,10 +9,11 @@
     ...
   }: let
     cfgRoot = config.zelec-core;
-    cfg = cfgRoot.virtualisation.docker;
+    cfg = cfgRoot.virtualisation.libvirt;
   in {
     options.zelec-core.virtualisation.libvirt = {
       enable = lib.mkEnableOption "Enables libvirt";
+      enableVirtManager = lib.mkEnableOption "Enables libvirt virt-manager";
     };
     config = lib.mkIf cfg.enable {
       environment.systemPackages = with pkgs; [
@@ -27,7 +28,7 @@
           group = "libvirt-qemu";
         };
       };
-
+      programs.virt-manager.enable = cfg.enableVirtManager;
       virtualisation.spiceUSBRedirection.enable = true;
       virtualisation.libvirtd = {
         enable = true;

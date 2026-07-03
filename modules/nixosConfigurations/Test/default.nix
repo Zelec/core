@@ -39,7 +39,7 @@
     zelec-core.desktops.hyprland.enable = true;
   };
   flake.nixosModules.hosts-Test-sway = {
-    zelec-core.desktops.sway.enable = false;
+    zelec-core.desktops.sway.enable = true;
   };
   flake.nixosModules.hosts-Test-base = {
     config,
