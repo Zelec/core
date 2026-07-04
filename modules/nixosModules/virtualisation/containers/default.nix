@@ -14,7 +14,7 @@
       enableDefaultContainers = lib.mkOption {
         description = "Enables default containers in this stack";
         type = lib.types.bool;
-        default = cfgRoot.autoEnable;
+        default = cfgRoot.virtualisation.docker.enable;
       };
     };
   };
