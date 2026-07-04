@@ -13,6 +13,7 @@
   in {
     options.zelec-core.services.beszel-agent = {
       enable = lib.mkEnableOption "Enables beszel agent";
+      enableSmart = lib.mkEnableOption "Enables beszel agent's smart capabilities";
       envFilePath = lib.mkOption {
         type = lib.types.str;
         description = ''
@@ -28,14 +29,14 @@
         '';
       };
     };
-    config = {
+    config = lib.mkIf cfg.enable {
       services = {
         beszel.agent = {
           enable = true;
           package = pkgs.beszel;
           environmentFile = cfg.envFilePath;
           smartmon = {
-            enable = true;
+            enable = cfg.enableSmart;
             package = pkgs.smartmontools;
           };
         };

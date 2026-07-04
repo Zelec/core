@@ -46,7 +46,10 @@
       # Default internal modules used by all machines
       zelec-core = {
         programs.common-cli.enable = lib.mkDefault cfgRoot.autoEnable;
-        services.beszel-agent.enable = lib.mkDefault cfgRoot.autoEnable;
+        services.beszel-agent = {
+          enable = lib.mkDefault cfgRoot.autoEnable;
+          enableSmart = lib.mkDefault cfgRoot.autoEnable;
+        };
         services.locate.enable = lib.mkDefault cfgRoot.autoEnable;
         services.openssh.enable = lib.mkDefault cfgRoot.autoEnable;
         services.stylix.enable = lib.mkDefault cfgRoot.autoEnable;
