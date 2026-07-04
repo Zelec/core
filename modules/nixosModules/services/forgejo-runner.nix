@@ -79,51 +79,77 @@
         ];
       };
     };
-    config = lib.mkIf cfg.enable {
-      services.gitea-actions-runner = {
-        package = pkgs.forgejo-runner;
-        instances = {
-          base = {
-            enable = true;
-            name = "${cfg.name}-base";
-            url = cfg.url;
-            tokenFile = cfg.forgejoRunnerTokenPath;
-            labels =
-              lib.optionals cfg.enableGenericLabels [
-                "ubuntu-latest:docker://${cfg.runnerImageRoot}:act-latest"
-                "ubuntu-22.04:docker://${cfg.runnerImageRoot}:act-22.04"
-                "ubuntu-20.04:docker://${cfg.runnerImageRoot}:act-20.04"
-                "ubuntu-18.04:docker://${cfg.runnerImageRoot}:act-18.04"
-                "nix-container:docker://docker.tgdev.net/public/nix-runner:latest"
-              ]
-              ++ lib.optionals cfg.enableSpesificHostLabels
-              [
-                "${cfg.name}-native:host"
-                "${cfg.name}-nix-container:docker://docker.tgdev.net/public/nix-runner:latest"
-                "${cfg.name}-ubuntu-latest:docker://${cfg.runnerImageRoot}:act-latest"
-              ]
-              ++ lib.optionals cfg.enableGenericHostLabels
-              [
-                "nix-native:host"
-              ]
-              ++ lib.optionals cfg.enablePerSystemBuildLabels
-              [
-                "nix-container-builder-${pkgs.stdenv.hostPlatform.system}:docker://docker.tgdev.net/public/nix-runner:latest"
-              ];
-            hostPackages = cfg.hostPackages;
-            settings = {
-              cache = {
-                enabled = true;
-                host = cfg.cacheHost;
+    config = lib.mkIf cfg.enable (lib.mkMerge [
+      {
+        # Makes Sops work better
+        users.users.gitea-runner = {
+          isSystemUser = true;
+          group = "gitea-runner";
+        };
+        users.groups.gitea-runner = {};
+        systemd.services.gitea-runner-base = {
+          serviceConfig = {
+            User = "gitea-runner";
+            Group = "gitea-runner";
+            DynamicUser = lib.mkForce false; # fix
+          };
+        };
+        services.gitea-actions-runner = {
+          package = pkgs.forgejo-runner;
+          instances = {
+            base = {
+              enable = true;
+              name = "${cfg.name}-base";
+              url = cfg.url;
+              tokenFile = cfg.forgejoRunnerTokenPath;
+              labels =
+                lib.optionals cfg.enableGenericLabels [
+                  "ubuntu-latest:docker://${cfg.runnerImageRoot}:act-latest"
+                  "ubuntu-22.04:docker://${cfg.runnerImageRoot}:act-22.04"
+                  "ubuntu-20.04:docker://${cfg.runnerImageRoot}:act-20.04"
+                  "ubuntu-18.04:docker://${cfg.runnerImageRoot}:act-18.04"
+                  "nix-container:docker://docker.tgdev.net/public/nix-runner:latest"
+                ]
+                ++ lib.optionals cfg.enableSpesificHostLabels
+                [
+                  "${cfg.name}-native:host"
+                  "${cfg.name}-nix-container:docker://docker.tgdev.net/public/nix-runner:latest"
+                  "${cfg.name}-ubuntu-latest:docker://${cfg.runnerImageRoot}:act-latest"
+                ]
+                ++ lib.optionals cfg.enableGenericHostLabels
+                [
+                  "nix-native:host"
+                ]
+                ++ lib.optionals cfg.enablePerSystemBuildLabels
+                [
+                  "nix-container-builder-${pkgs.stdenv.hostPlatform.system}:docker://docker.tgdev.net/public/nix-runner:latest"
+                ];
+              hostPackages = cfg.hostPackages;
+              settings = {
+                cache = {
+                  enabled = true;
+                  host = cfg.cacheHost;
+                };
+                container = {
+                  force_pull = true;
+                  privileged = false;
+                  options = cfg.containerOptions;
+                };
+                runner.capacity = 1;
               };
-              container = {
-                force_pull = true;
-                privileged = false;
-                options = cfg.containerOptions;
-              };
-              runner.capacity = 1;
             };
           };
+        };
+      }
+      (lib.mkIf cfg.enablePrivilegedLabels {
+        systemd.services.gitea-runner-privileged-docker = {
+          serviceConfig = {
+            User = "gitea-runner";
+            Group = "gitea-runner";
+            DynamicUser = lib.mkForce false; # fix
+          };
+        };
+        services.gitea-actions-runner = {
           privileged-docker = {
             enable = cfg.enablePrivilegedLabels;
             name = "${cfg.name}-privileged-docker";
@@ -150,7 +176,7 @@
             };
           };
         };
-      };
-    };
+      })
+    ]);
   };
 }
