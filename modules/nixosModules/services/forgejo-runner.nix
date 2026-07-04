@@ -149,7 +149,7 @@
             DynamicUser = lib.mkForce false; # fix
           };
         };
-        services.gitea-actions-runner = {
+        services.gitea-actions-runner.instances= {
           privileged-docker = {
             enable = cfg.enablePrivilegedLabels;
             name = "${cfg.name}-privileged-docker";
