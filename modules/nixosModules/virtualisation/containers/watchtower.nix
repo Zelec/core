@@ -49,7 +49,7 @@
     config = lib.mkIf cfg.enable (lib.mkMerge [
       {
         virtualisation.oci-containers.containers."watchtower" = {
-          image = "docker.io/nickfedor/watchtower:latest";
+          image = "ghcr.io/nicholas-fedor/watchtower:latest";
           environment = {
             "TZ" = cfg.timeZone;
             "WATCHTOWER_LABEL_ENABLE" = "true";
