@@ -51,6 +51,7 @@
           magic-wormhole
           minicom
           mosh
+          nano
           ncdu
           nix-eval-jobs
           nix-fast-build
