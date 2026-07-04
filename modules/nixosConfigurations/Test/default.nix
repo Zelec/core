@@ -203,6 +203,7 @@
           watchtower = {
             enable = true;
             envFilePath = toString pkgs.emptyFile;
+            containerUpdates.enable = true;
           };
         };
         docker = {

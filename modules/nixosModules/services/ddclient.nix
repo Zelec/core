@@ -21,6 +21,14 @@
       };
     };
     config = lib.mkIf cfg.enable {
+      # Allows me to target Sops against a single group to make this play nicely
+      users.groups.ddclient-secrets = {};
+      systemd.services.ddclient = {
+        serviceConfig = {
+          SupplementaryGroups = lib.mkOptionDefault ["ddclient-secrets"];
+          ReadOnlyPaths = lib.mkOptionDefault ["/run/secrets"];
+        };
+      };
       services.ddclient = {
         enable = true;
         usev4 = "webv4, web=ipinfo.io/ip";
