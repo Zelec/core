@@ -103,6 +103,9 @@
           enable = true;
           envFilePath = toString pkgs.emptyFile;
         };
+        btrbk-mass-backup = {
+          enable = true;
+        };
         btrfs-scrub = {
           enable = true;
           filesystems = ["/"];

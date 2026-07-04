@@ -39,6 +39,7 @@
           kdenlive
           kfind
           kolourpaint
+          kpat
           ksystemlog
           partitionmanager
           sddm-kcm

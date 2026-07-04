@@ -36,18 +36,8 @@
           # distributed via flatpaks (Such as bottles)
           # But I really should embrace nixpkgs for most of my software needs.
           packages = [
-            "com.rustdesk.RustDesk"
             "com.usebottles.bottles"
-            "in.cinny.Cinny"
-            "org.gimp.GIMP"
-            "org.kde.kcalc"
-            "org.kde.kdenlive"
-            "org.kde.kpat"
-            "org.kde.krita"
-            "org.libreoffice.LibreOffice"
-            "org.mozilla.Thunderbird"
             "org.signal.Signal"
-            "org.videolan.VLC"
           ];
           update.auto = {
             enable = true;
