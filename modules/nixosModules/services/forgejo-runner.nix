@@ -142,7 +142,7 @@
         };
       }
       (lib.mkIf cfg.enablePrivilegedLabels {
-        systemd.services.gitea-runner-privileged-docker = {
+        systemd.services."gitea-runner-privileged" = {
           serviceConfig = {
             User = "gitea-runner";
             Group = "gitea-runner";
@@ -150,9 +150,9 @@
           };
         };
         services.gitea-actions-runner.instances= {
-          privileged-docker = {
+          privileged = {
             enable = cfg.enablePrivilegedLabels;
-            name = "${cfg.name}-privileged-docker";
+            name = "${cfg.name}-privileged";
             url = cfg.url;
             tokenFile = cfg.forgejoRunnerTokenPath;
             labels = [
