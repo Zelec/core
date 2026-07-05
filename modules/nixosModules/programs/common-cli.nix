@@ -31,7 +31,6 @@
           coreutils
           cryptsetup
           curl
-          deploy-rs
           devbox
           devenv
           dig
