@@ -14,19 +14,28 @@
     cfg = cfgRoot.base;
   in {
     options.zelec-core.base = {
-      nix-common.enable = lib.mkOption {
-        description = "Turns on nix-tweaks options";
-        type = lib.types.bool;
-        default = cfgRoot.autoEnable;
+      nix-common = {
+        enable = lib.mkOption {
+          description = "Turns on nix-tweaks options";
+          type = lib.types.bool;
+          default = cfgRoot.autoEnable;
+        };
+        extraOverlays = lib.mkOption {
+          type = lib.types.listOf lib.types.deferredModule;
+          default = [];
+          description = "Additional overlays to append to the system package set.";
+        };
       };
     };
     config = let
-      defaultOverlays = [
-        inputs.copyparty.overlays.default
-        inputs.nix-vscode-extensions.overlays.default
-        inputs.nur.overlays.default
-        inputs.nvidia-patch.overlays.default
-      ];
+      defaultOverlays =
+        [
+          inputs.copyparty.overlays.default
+          inputs.nix-vscode-extensions.overlays.default
+          inputs.nur.overlays.default
+          inputs.nvidia-patch.overlays.default
+        ]
+        ++ cfg.extraOverlays;
       baseNixPkgConfig = {
         allowUnfree = true;
         permittedInsecurePackages = [
