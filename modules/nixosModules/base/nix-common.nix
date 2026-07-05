@@ -21,7 +21,7 @@
           default = cfgRoot.autoEnable;
         };
         extraOverlays = lib.mkOption {
-          type = lib.types.listOf lib.types.deferredModule;
+          type = lib.types.listOf lib.types.unspecified;
           default = [];
           description = "Additional overlays to append to the system package set.";
         };
