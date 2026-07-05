@@ -42,7 +42,7 @@
         };
         schedule = lib.mkOption {
           type = lib.types.str;
-          default = "0 0 6 * * *";
+          default = "*-*-* 6:00:00";
         };
       };
     };
