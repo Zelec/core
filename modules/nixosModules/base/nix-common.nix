@@ -35,7 +35,7 @@
           inputs.nur.overlays.default
           inputs.nvidia-patch.overlays.default
         ]
-        ++ cfg.extraOverlays;
+        ++ cfg.nix-common.extraOverlays;
       baseNixPkgConfig = {
         allowUnfree = true;
         permittedInsecurePackages = [
