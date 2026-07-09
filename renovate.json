@@ -1,13 +1,34 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+    "extends": [
+    "config:recommended",
+    ":semanticCommitTypeAll(chore)"
+  ],
   "lockFileMaintenance": {
-    "automerge": true
+    "enabled": true,
+    "automerge": true,
+    "schedule": [
+      "before 4am on monday"
+    ]
   },
   "automergeSchedule": [
-    "before 4am on friday"
+    "before 4am on tuesday"
   ],
-  "extends": [
-    "local>Renovate-Bot/renovate-config",
-    "local>Renovate-Bot/renovate-config:nix-flakes-pin"
+  "nix": {
+    "enabled": true
+  },
+  "packageRules": [
+    {
+      "lockFileMaintenance": {
+        "enabled": true
+      },
+      "matchDepTypes": [
+        "lockfile"
+      ],
+      "matchManagers": [
+        "nix"
+      ],
+      "rangeStrategy": "pin"
+    }
   ]
 }
