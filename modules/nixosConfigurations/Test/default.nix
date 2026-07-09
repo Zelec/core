@@ -156,23 +156,14 @@
         thinkfan.enable = true;
         tlp.enable = true;
         zot = {
-          caddy = {
-            domain = "docker.tgdev.net";
-            domainAliases = ["docker.tgdev.ca"];
-            extraConfig = ''
-              import base_config
-              request_body {
-                max_size 0
-              }
-              reverse_proxy host.docker.internal:${config.services.zot.settings.http.port} {
-                flush_interval -1
-                header_up Host {http.request.host}
-                transport http {
-                  dial_timeout 5s
-                }
-              }
-            '';
-            internalAddress = "host.docker.internal";
+          docker-proxy = {
+            instances = {
+              tgdevnet = {
+                domain = "example.com";
+                secretFile = toString pkgs.emptyFile;
+                proxyPort = 5001;
+              };
+            };
           };
           enable = true;
           htpasswdPath = toString pkgs.emptyFile;

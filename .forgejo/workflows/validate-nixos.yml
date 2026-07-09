@@ -20,25 +20,21 @@ on:
       - "**.yml"
       - "**.yaml"
 jobs:
-  validate-amd64:
-    runs-on: nix-container-builder-x86_64-linux
+  validate:
+    name: Validate (${{ matrix.system }})
+    runs-on: nix-container-builder-${{ matrix.system }}
+    strategy:
+      fail-fast: false
+      matrix:
+        system:
+          - x86_64-linux
+          - aarch64-linux
     steps:
       - name: Checkout Code
-        uses: https://github.com/actions/checkout@v6
+        uses: https://code.forgejo.org/actions/checkout@v7
       - name: Run Prereqs
         uses: ./.forgejo/workflows-composite/setup-nix
         with:
           github_token: ${{ secrets.PAT_GITHUB }}
       - name: Verify Flake Metadata
-        run: nix flake check --accept-flake-config
-  validate-arm64:
-    runs-on: nix-container-builder-aarch64-linux
-    steps:
-      - name: Checkout Code
-        uses: https://github.com/actions/checkout@v6
-      - name: Run Prereqs
-        uses: ./.forgejo/workflows-composite/setup-nix
-        with:
-          github_token: ${{ secrets.PAT_GITHUB }}
-      - name: Verify Flake Metadata
-        run: nix flake check --accept-flake-config
+        run: nix build github:srid/devour-flake --dry-run -L --no-link --print-out-paths --override-input flake ./

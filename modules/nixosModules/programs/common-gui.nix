@@ -40,7 +40,7 @@
           pavucontrol
           rclone
           remmina
-          rustdesk
+          rustdesk-flutter
           source-code-pro
           tela-icon-theme
           thunderbird

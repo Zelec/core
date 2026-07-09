@@ -9,6 +9,34 @@
   }: let
     cfgRoot = config.zelec-core;
     cfg = cfgRoot.services.zot;
+    instanceOptions = {name, ...}: {
+      options = {
+        enable = lib.mkEnableOption "this zot docker proxy instance";
+        domain = lib.mkOption {
+          type = lib.types.str;
+          description = "The domain name for the Caddy virtual host (e.g., 'docker.tgdev.net').";
+        };
+        internalAddress = lib.mkOption {
+          type = lib.types.str;
+          description = "The address for caddy to reach out to";
+          default = "host.docker.internal";
+        };
+        proxyPort = lib.mkOption {
+          type = lib.types.port;
+          default = 5001;
+          description = "The internal port the proxy should listen on.";
+        };
+        secretFile = lib.mkOption {
+          type = lib.types.str;
+          description = "Path to a file on the system containing the raw secret string.";
+        };
+        zotUrl = lib.mkOption {
+          type = lib.types.str;
+          default = "http://127.0.0.1:5000";
+          description = "The upstream Zot URL.";
+        };
+      };
+    };
   in {
     options.zelec-core.services.zot = {
       enable = lib.mkEnableOption "Enables Zot OCI container registry";
@@ -61,27 +89,23 @@
           };
         };
       };
-      caddy = {
-        domain = lib.mkOption {
-          type = lib.types.str;
-          default = "docker.tgdev.net";
+      docker-proxy = {
+        instances = lib.mkOption {
+          type = lib.types.attrsOf (lib.types.submodule instanceOptions);
+          default = {};
+          description = "Declarative instances of Zot Docker Proxies.";
         };
-        domainAliases = lib.mkOption {
-          type = lib.types.listOf lib.types.str;
-          default = ["docker.tgdev.ca"];
-        };
-        internalAddress = lib.mkOption {
-          type = lib.types.str;
-          default = "host.docker.internal";
-        };
-        extraConfig = lib.mkOption {
-          type = lib.types.lines;
-          default = ''
+      };
+    };
+    config = lib.mkIf cfg.enable {
+      zelec-core.virtualisation.containers.caddy.virtualHosts = lib.mapAttrs' (name: instanceCfg:
+        lib.nameValuePair instanceCfg.domain {
+          extraConfig = ''
             import base_config
             request_body {
               max_size 0
             }
-            reverse_proxy ${cfg.caddy.internalAddress}:${config.services.zot.settings.http.port} {
+            reverse_proxy ${toString instanceCfg.internalAddress}:${toString instanceCfg.proxyPort} {
               flush_interval -1
               header_up Host {http.request.host}
               transport http {
@@ -89,14 +113,44 @@
               }
             }
           '';
-        };
+        })
+      cfg.docker-proxy.instances;
+      services.zot-docker-proxy = {
+        instances =
+          lib.mapAttrs (name: instanceCfg: {
+            configFile = "/run/zot-docker-proxy/${name}.conf";
+          })
+          cfg.docker-proxy.instances;
       };
-    };
-    config = lib.mkIf cfg.enable {
-      zelec-core.virtualisation.containers.caddy.virtualHosts."${cfg.caddy.domain}" = {
-        serverAliases = cfg.caddy.domainAliases;
-        extraConfig = cfg.caddy.extraConfig;
-      };
+      systemd.services = lib.mapAttrs' (name: instanceCfg:
+        lib.nameValuePair "zot-docker-proxy-${name}" {
+          serviceConfig = {
+            # Ensure the directory exists and has strict permissions
+            RuntimeDirectory = "zot-docker-proxy";
+            RuntimeDirectoryMode = "0700";
+          };
+
+          # Before the service starts, substitute the secret into the template
+          preStart = ''
+            if [ ! -f "${instanceCfg.secretFile}" ]; then
+              echo "Error: Secret file ${instanceCfg.secretFile} does not exist!" >&2
+              exit 1
+            fi
+
+            SECRET=$(cat "${instanceCfg.secretFile}")
+
+            # Write out the final config file safely to the runtime directory
+            cat <<EOF > /run/zot-docker-proxy/${name}.conf
+            port: ${toString instanceCfg.proxyPort}
+            secret: ''${SECRET}
+            zot-url: ${instanceCfg.zotUrl}
+            my-url: https://${instanceCfg.domain}
+            EOF
+
+            chmod 600 /run/zot-docker-proxy/${name}.conf
+          '';
+        })
+      cfg.docker-proxy.instances;
       services.zot = {
         enable = true;
         dataDir = "/var/lib/zot";
