@@ -210,7 +210,10 @@
           defaultProfile = "managed";
           profiles."managed" = {
             colorScheme = "WhiteOnBlack";
-            font.name = config.zelec-core.services.stylix.fonts.monospace.name;
+            font = {
+              name = config.zelec-core.services.stylix.fonts.monospace.name;
+              size = "9";
+            };
             extraConfig = {
               "Scrolling"."HighlightScrolledLines" = false;
               "Terminal Features"."BlinkingCursorEnabled" = true;
