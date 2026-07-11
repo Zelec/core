@@ -28,9 +28,11 @@
       ];
       environment.sessionVariables.NIXOS_OZONE_WL = "1";
       fonts.packages = with pkgs; [
+        dejavu_fonts
         font-awesome
         nerd-fonts.jetbrains-mono
-        dejavu_fonts
+        noto-fonts-color-emoji
+        source-code-pro
       ];
       services.gnome.gnome-keyring.enable = true;
       programs.sway = {

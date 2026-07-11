@@ -49,6 +49,13 @@
           discover
         ];
       environment.sessionVariables.NIXOS_OZONE_WL = "1";
+      fonts.packages = with pkgs; [
+        dejavu_fonts
+        font-awesome
+        nerd-fonts.jetbrains-mono
+        noto-fonts-color-emoji
+        source-code-pro
+      ];
       hardware.graphics = {
         enable = true;
         enable32Bit = lib.mkIf pkgs.stdenv.hostPlatform.isx86_64 true;
@@ -203,6 +210,7 @@
           defaultProfile = "managed";
           profiles."managed" = {
             colorScheme = "WhiteOnBlack";
+            font.name = config.zelec-core.services.stylix.fonts.monospace.name;
             extraConfig = {
               "Scrolling"."HighlightScrolledLines" = false;
               "Terminal Features"."BlinkingCursorEnabled" = true;
