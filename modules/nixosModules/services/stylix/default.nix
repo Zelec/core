@@ -78,7 +78,7 @@
           };
           monospace = {
             package = pkgs.source-code-pro;
-            name = "Source Code Pro, Regular";
+            name = "Source Code Pro";
           };
           emoji = {
             package = pkgs.noto-fonts-color-emoji;

@@ -212,7 +212,7 @@
             colorScheme = "WhiteOnBlack";
             font = {
               name = config.zelec-core.services.stylix.fonts.monospace.name;
-              size = "9";
+              size = 9;
             };
             extraConfig = {
               "Scrolling"."HighlightScrolledLines" = false;
