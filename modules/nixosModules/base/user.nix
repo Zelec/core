@@ -19,11 +19,7 @@
       inputs.home-manager.nixosModules.home-manager
     ];
     options.zelec-core.base.user = {
-      enable = lib.mkOption {
-        description = "Enables base user creation";
-        type = lib.types.bool;
-        default = cfgRoot.autoEnable;
-      };
+      enable = lib.mkEnableOption "Enables base user creation";
       name = lib.mkOption {
         description = "User name for the user account";
         type = lib.types.str;

@@ -26,7 +26,7 @@
     ];
     options.zelec-core = {
       autoEnable = lib.mkOption {
-        description = "This option enables some modules to enable themselves, turn this off to make all modules opt-in";
+        description = "This option enables some modules to enable themselves, leave this off to make all modules opt-in";
         type = lib.types.bool;
         default = false;
       };
@@ -45,6 +45,11 @@
     config = lib.mkIf cfg.enable {
       # Default internal modules used by all machines
       zelec-core = {
+        base = {
+          nix-common.enable = lib.mkDefault cfgRoot.autoEnable;
+          system-tweaks.enable = lib.mkDefault cfgRoot.autoEnable;
+          user.enable = lib.mkDefault cfgRoot.autoEnable;
+        };
         programs.common-cli.enable = lib.mkDefault cfgRoot.autoEnable;
         services.beszel-agent = {
           enable = lib.mkDefault cfgRoot.autoEnable;

@@ -14,11 +14,7 @@
     backupBin = "${lib.getExe self.packages.${pkgs.stdenv.hostPlatform.system}.btrbk-mass-backup} --config ${configJson} --mount-point ${cfg.mountPoint} --mapper ${mapperFullName}";
   in {
     options.zelec-core.services.btrbk-mass-backup = {
-      enable = lib.mkOption {
-        type = lib.types.bool;
-        example = false;
-        default = true;
-      };
+      enable = lib.mkEnableOption "Enables Zelec's BTRBK Mass Backup Program";
       mountPoint = lib.mkOption {
         type = lib.types.str;
         default = "/media/secureArchiveStorage";
@@ -33,7 +29,7 @@
       };
       deviceEncryptionKeyPath = lib.mkOption {
         type = lib.types.str;
-        default = "./luks-key";
+        description = "Path to a keyfile for dmcrypt to decrypt the drive with";
       };
       volumes = lib.mkOption {
         description = "JSON-compatible attrset defining backup hierarchy (See example.json for format)";
@@ -42,7 +38,7 @@
       };
       resticRepoKeyPath = lib.mkOption {
         type = lib.types.str;
-        default = "./secret.txt";
+        description = "Path to a text file containing the repo key for Restic";
       };
       resticExcludes = lib.mkOption {
         type = lib.types.listOf lib.types.str;

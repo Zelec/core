@@ -10,14 +10,10 @@
     ...
   }: let
     cfgRoot = config.zelec-core;
-    cfg = cfgRoot.system-tweaks;
+    cfg = cfgRoot.base.system-tweaks;
   in {
-    options.zelec-core.system-tweaks = {
-      enable = lib.mkOption {
-        description = "Enables system tunables (systemd-oomd, sysctl swappiness, etc)";
-        type = lib.types.bool;
-        default = cfgRoot.autoEnable;
-      };
+    options.zelec-core.base.system-tweaks = {
+      enable = lib.mkEnableOption "Enables system tunables (systemd-oomd, sysctl swappiness, etc)";
       sysctl = {
         vm-swappiness = lib.mkOption {
           type = lib.types.ints.positive;

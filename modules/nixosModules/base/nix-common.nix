@@ -15,11 +15,7 @@
   in {
     options.zelec-core.base = {
       nix-common = {
-        enable = lib.mkOption {
-          description = "Turns on nix-tweaks options";
-          type = lib.types.bool;
-          default = cfgRoot.autoEnable;
-        };
+        enable = lib.mkEnableOption "Turns on nix-tweaks options";
         extraOverlays = lib.mkOption {
           type = lib.types.listOf lib.types.unspecified;
           default = [];
@@ -129,6 +125,10 @@
           ];
           networking.firewall.enable = lib.mkDefault false;
           security.polkit.enable = true;
+          # Creates /mnt on all boxes
+          systemd.tmpfiles.rules = [
+            "d /mnt 0775 root root - -"
+          ];
         }
         (lib.mkIf (config.services.displayManager.enable) {
           programs.ssh.startAgent = false;
