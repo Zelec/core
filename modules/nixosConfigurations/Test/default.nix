@@ -170,7 +170,6 @@
           httpAccessControl = {};
         };
       };
-      system-tweaks.enable = true;
       virtualisation = {
         containers = {
           caddy = {
