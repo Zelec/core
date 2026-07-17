@@ -91,9 +91,9 @@
           enableCUDA = isX86;
         };
         sdr.enable = true;
-        steam = {enable = isX86;};
+        steam.enable = isX86;
         vscodium.enable = true;
-        wine = {enable = isX86;};
+        wine.enable = isX86;
       };
       security = {
         tpm2.enable = true;
@@ -105,6 +105,8 @@
         };
         btrbk-mass-backup = {
           enable = true;
+          resticRepoKeyPath = toString pkgs.emptyFile;
+          deviceEncryptionKeyPath = toString pkgs.emptyFile;
         };
         btrfs-scrub = {
           enable = true;
@@ -136,7 +138,7 @@
         };
         openssh.enable = true;
         pipewire.enable = true;
-        printing = {enable = isX86;};
+        printing.enable = isX86;
         renovate = {
           enable = true;
           endpoint = "http://127.0.0.1";
@@ -198,7 +200,7 @@
         };
         docker = {
           enable = true;
-          nvidia = {enable = isX86;};
+          nvidia.enable = isX86;
           storageDriver = "btrfs";
         };
         libvirt.enable = true;

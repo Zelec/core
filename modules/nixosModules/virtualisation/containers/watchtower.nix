@@ -76,15 +76,15 @@
           script = ''
             IMAGE="${config.virtualisation.oci-containers.containers."watchtower".image}"
             DOCKER="${pkgs.docker}/bin/docker"
-            
+
             echo "Checking for updates to $IMAGE..."
-            
+
             OLD_SHA=$($DOCKER images -q "$IMAGE" 2>/dev/null || true)
 
             $DOCKER pull "$IMAGE"
 
             NEW_SHA=$($DOCKER images -q "$IMAGE")
-            
+
             if [ "$OLD_SHA" = "$NEW_SHA" ] && [ -n "$OLD_SHA" ]; then
               echo "Watchtower is already on the latest image ($OLD_SHA). Exiting."
             else

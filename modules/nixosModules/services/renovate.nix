@@ -16,6 +16,11 @@
   in {
     options.zelec-core.services.renovate = {
       enable = lib.mkEnableOption "Enables renovate service";
+      schedule = lib.mkOption {
+        type = lib.types.str;
+        default = "*:0/10";
+        description = "Follows systemd timer stipulations, controls how often the service is ran, by default it runs every 10 minutes";
+      };
       platform = lib.mkOption {
         type = lib.types.str;
       };
@@ -139,8 +144,7 @@
         enable = true;
         runtimePackages = cfg.runtimePackages;
         validateSettings = true;
-        # Every 10 mins
-        schedule = "*:0/10";
+        schedule = cfg.schedule;
         settings = {
           autodiscover = true;
           endpoint = cfg.endpoint;

@@ -149,7 +149,7 @@
             DynamicUser = lib.mkForce false; # fix
           };
         };
-        services.gitea-actions-runner.instances= {
+        services.gitea-actions-runner.instances = {
           privileged = {
             enable = cfg.enablePrivilegedLabels;
             name = "${cfg.name}-privileged";
