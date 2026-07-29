@@ -127,12 +127,13 @@
             kiorc.Confirmations.ConfirmDelete = true;
             kiorc.Confirmations.ConfirmEmptyTrash = true;
             kiorc.Confirmations.ConfirmTrash = false;
-            kscreenlockerrc.Daemon.LockGrace = 30;
-            kscreenlockerrc.Daemon.Timeout = 30;
             kscreenlockerrc."Greeter/Wallpaper/org.kde.image/General".DynamicMode = "2";
             kscreenlockerrc."Greeter/Wallpaper/org.kde.image/General".Image = "file://${config.zelec-core.services.stylix.image}";
             kscreenlockerrc."Greeter/Wallpaper/org.kde.image/General".PreviewImage = "file://${config.zelec-core.services.stylix.image}";
+            kscreenlockerrc.Daemon.LockGrace = 30;
+            kscreenlockerrc.Daemon.Timeout = 30;
             ksmserverrc.General.loginMode = "emptySession";
+            kwinrc.Effect-overview.BorderActivate = 9;
             plasma-localerc.Formats.LANG = "en_CA.UTF-8";
             plasma-localerc.Formats.LC_TIME = "en_GB.UTF-8";
             spectaclerc.Annotations.annotationToolType = 6;

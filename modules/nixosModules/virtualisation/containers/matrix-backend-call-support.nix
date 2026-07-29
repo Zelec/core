@@ -9,6 +9,9 @@
   }: let
     cfgRoot = config.zelec-core;
     cfg = cfgRoot.virtualisation.containers.matrix-backend-call-support;
+    dockerEnabled = config.zelec-core.virtualisation.docker.enable or false;
+    podmanEnabled = config.zelec-core.virtualisation.podman.enable or false;
+    caddyNetwork = config.zelec-core.virtualisation.containers.caddy.dockerNetworkName;
   in {
     options.zelec-core.virtualisation.containers.matrix-backend-call-support = {
       enable = lib.mkEnableOption "Enables matrix backend livekit container stack";
@@ -53,103 +56,197 @@
         };
       };
     };
-    config = lib.mkIf cfg.enable {
-      networking.firewall = {
-        allowedTCPPorts = [
-          # Livekit RTC TCP Port
-          7881
-          # TURN port
-          3478
-        ];
-        allowedUDPPorts = [
-          # TURN port
-          3478
-        ];
-        # TCP and UDP ranges for both Livekit and Coturn
-        allowedTCPPortRanges = [
-          {
-            from = 50100;
-            to = 65535;
-          }
-        ];
-        allowedUDPPortRanges = [
-          {
-            from = 50100;
-            to = 65535;
-          }
-        ];
-      };
-      virtualisation.oci-containers.containers."lk-jwt-service" = {
-        image = "ghcr.io/element-hq/lk-jwt-service:latest";
-        environment = {
-          "LIVEKIT_JWT_BIND" = ":8081";
-          "LIVEKIT_URL" = "wss://${cfg.domains.livekit}";
+    config = lib.mkMerge [
+      (lib.mkIf cfg.enable {
+        networking.firewall = {
+          allowedTCPPorts = [
+            # Livekit RTC TCP Port
+            7881
+            # TURN port
+            3478
+          ];
+          allowedUDPPorts = [
+            # TURN port
+            3478
+          ];
+          # TCP and UDP ranges for both Livekit and Coturn
+          allowedTCPPortRanges = [
+            {
+              from = 50100;
+              to = 65535;
+            }
+          ];
+          allowedUDPPortRanges = [
+            {
+              from = 50100;
+              to = 65535;
+            }
+          ];
         };
-        environmentFiles = [
-          cfg.config.livekitJWTEnvPath
-        ];
-        labels = {
-          "com.centurylinklabs.watchtower.enable" = "true";
-          "caddy_0" = "${cfg.domains.livekit}";
-          "caddy_0.@lk-jwt-service.path" = "/sfu/get* /healthz* /get_token*";
-          "caddy_0.route" = "@lk-jwt-service";
-          "caddy_0.route.reverse_proxy" = "{{upstreams 8081}}";
-          "caddy_1" = "${cfg.domains.root}";
-          "caddy_1.header" = "Access-Control-Allow-Origin *";
-          "caddy_1.respond_0" = "/.well-known/matrix/server {\"m.server\":\"${cfg.domains.matrix}:443\"} 200";
-          "caddy_1.respond_1" = "/.well-known/matrix/client {\"m.server\":{\"base_url\":\"https://${cfg.domains.matrix}\"},\"m.homeserver\":{\"base_url\":\"https://${cfg.domains.matrix}\"},\"m.identity_server\":{\"base_url\":\"https://${cfg.domains.matrix}\"},\"org.matrix.msc3575.proxy\":{\"url\":\"https://${cfg.domains.matrix}\"},\"org.matrix.msc4143.rtc_foci\":[{\"type\":\"livekit\",\"livekit_service_url\":\"https://${cfg.domains.livekit}\"}]} 200";
-          "caddy_1.respond_2" = "/.well-known/matrix/support {\"contacts\":[{\"email_address\":\"${cfg.contactUser}@${cfg.domains.root}\",\"matrix_id\":\"@${cfg.contactUser}:${cfg.domains.root}\",\"role\":\"m.role.admin\"}]} 200";
-          "caddy_1.redir_0" = "/.well-known/webfinger https://webfinger.timeguard.ca/.well-known/webfinger 301";
-          "caddy_1.@well-known-matchers.not.path" = "/.well-known/matrix/* /.well-known/webfinger";
-          "caddy_1.redir_1" = "@well-known-matchers https://${cfg.domains.redirect}{uri} 302";
+      })
+      (lib.mkIf (cfg.enable && dockerEnabled) {
+        virtualisation.oci-containers.containers."lk-jwt-service" = {
+          image = "ghcr.io/element-hq/lk-jwt-service:latest";
+          environment = {
+            "LIVEKIT_JWT_BIND" = ":8081";
+            "LIVEKIT_URL" = "wss://${cfg.domains.livekit}";
+          };
+          environmentFiles = [
+            cfg.config.livekitJWTEnvPath
+          ];
+          labels = {
+            "com.centurylinklabs.watchtower.enable" = "true";
+            "caddy_0" = "${cfg.domains.livekit}";
+            "caddy_0.@lk-jwt-service.path" = "/sfu/get* /healthz* /get_token*";
+            "caddy_0.route" = "@lk-jwt-service";
+            "caddy_0.route.reverse_proxy" = "{{upstreams 8081}}";
+            "caddy_1" = "${cfg.domains.root}";
+            "caddy_1.header" = "Access-Control-Allow-Origin *";
+            "caddy_1.respond_0" = "/.well-known/matrix/server {\"m.server\":\"${cfg.domains.matrix}:443\"} 200";
+            "caddy_1.respond_1" = "/.well-known/matrix/client {\"m.server\":{\"base_url\":\"https://${cfg.domains.matrix}\"},\"m.homeserver\":{\"base_url\":\"https://${cfg.domains.matrix}\"},\"m.identity_server\":{\"base_url\":\"https://${cfg.domains.matrix}\"},\"org.matrix.msc3575.proxy\":{\"url\":\"https://${cfg.domains.matrix}\"},\"org.matrix.msc4143.rtc_foci\":[{\"type\":\"livekit\",\"livekit_service_url\":\"https://${cfg.domains.livekit}\"}]} 200";
+            "caddy_1.respond_2" = "/.well-known/matrix/support {\"contacts\":[{\"email_address\":\"${cfg.contactUser}@${cfg.domains.root}\",\"matrix_id\":\"@${cfg.contactUser}:${cfg.domains.root}\",\"role\":\"m.role.admin\"}]} 200";
+            "caddy_1.redir_0" = "/.well-known/webfinger https://webfinger.timeguard.ca/.well-known/webfinger 301";
+            "caddy_1.@well-known-matchers.not.path" = "/.well-known/matrix/* /.well-known/webfinger";
+            "caddy_1.redir_1" = "@well-known-matchers https://${cfg.domains.redirect}{uri} 302";
+          };
+          log-driver = "journald";
+          extraOptions = [
+            "--network-alias=lk-jwt-service"
+            "--network=matrix-backend-call-support_livekit_internal"
+            "--network=${config.zelec-core.virtualisation.containers.caddy.dockerNetworkName}"
+          ];
         };
-        log-driver = "journald";
-        extraOptions = [
-          "--network-alias=lk-jwt-service"
-          "--network=matrix-backend-call-support_livekit_internal"
-          "--network=${config.zelec-core.virtualisation.containers.caddy.dockerNetworkName}"
-        ];
-      };
-      virtualisation.oci-containers.containers."livekit" = {
-        image = "docker.io/livekit/livekit-server:latest";
-        cmd = ["--config" "/etc/livekit.yaml"];
-        ports = [
-          "7881:7881/tcp"
-          "50100-50200:50100-50200/tcp"
-          "50100-50200:50100-50200/udp"
-        ];
-        labels = {
-          "com.centurylinklabs.watchtower.enable" = "true";
-          "caddy_0" = "${cfg.domains.livekit}";
-          "caddy_0.reverse_proxy" = "{{upstreams 7880}}";
+        virtualisation.oci-containers.containers."livekit" = {
+          image = "docker.io/livekit/livekit-server:latest";
+          cmd = ["--config" "/etc/livekit.yaml"];
+          ports = [
+            "7881:7881/tcp"
+            "50100-50200:50100-50200/tcp"
+            "50100-50200:50100-50200/udp"
+          ];
+          labels = {
+            "com.centurylinklabs.watchtower.enable" = "true";
+            "caddy_0" = "${cfg.domains.livekit}";
+            "caddy_0.reverse_proxy" = "{{upstreams 7880}}";
+          };
+          volumes = ["${cfg.config.livekitPath}:/etc/livekit.yaml:ro"];
+          log-driver = "journald";
+          extraOptions = [
+            "--network-alias=livekit"
+            "--network=matrix-backend-call-support_livekit_internal"
+            "--network=${config.zelec-core.virtualisation.containers.caddy.dockerNetworkName}"
+          ];
         };
-        volumes = ["${cfg.config.livekitPath}:/etc/livekit.yaml:ro"];
-        log-driver = "journald";
-        extraOptions = [
-          "--network-alias=livekit"
-          "--network=matrix-backend-call-support_livekit_internal"
-          "--network=${config.zelec-core.virtualisation.containers.caddy.dockerNetworkName}"
-        ];
-      };
-      virtualisation.oci-containers.containers."coturn" = {
-        image = "docker.io/coturn/coturn:latest";
-        labels = {
-          "com.centurylinklabs.watchtower.enable" = "true";
+        virtualisation.oci-containers.containers."coturn" = {
+          image = "docker.io/coturn/coturn:latest";
+          labels = {
+            "com.centurylinklabs.watchtower.enable" = "true";
+          };
+          volumes = ["${cfg.config.coturnPath}:/etc/coturn/turnserver.conf:ro"];
+          log-driver = "journald";
+          extraOptions = ["--network=host"];
         };
-        volumes = ["${cfg.config.coturnPath}:/etc/coturn/turnserver.conf:ro"];
-        log-driver = "journald";
-        extraOptions = ["--network=host"];
-      };
-      zelec-core.virtualisation.dockerManager.matrix-backend-call-support = {
-        containerNames = [
-          "coturn"
-          "livekit"
-          "lk-jwt-service"
-        ];
-        networkNames = [
-          "livekit_internal"
-        ];
-      };
-    };
+        zelec-core.virtualisation.dockerManager.matrix-backend-call-support = {
+          containerNames = [
+            "coturn"
+            "livekit"
+            "lk-jwt-service"
+          ];
+          networkNames = [
+            "livekit_internal"
+          ];
+        };
+      })
+      (lib.mkIf (cfg.enable && podmanEnabled) {
+        virtualisation.quadlet = {
+          networks.matrix-backend-call-support_livekit_internal = {
+            networkConfig = {
+              driver = "bridge";
+            };
+          };
+          containers.quadlet-lk-jwt-service = {
+            containerConfig = {
+              name = "lk-jwt-service";
+              image = "ghcr.io/element-hq/lk-jwt-service:latest";
+              autoUpdate = lib.mkIf config.zelec-core.virtualisation.podman.autoUpdate.enable "registry";
+              environments = {
+                LIVEKIT_JWT_BIND = ":8081";
+                LIVEKIT_URL = "wss://${cfg.domains.livekit}";
+              };
+              environmentFiles = [
+                cfg.config.livekitJWTEnvPath
+              ];
+              labels = {
+                "caddy_0" = "${cfg.domains.livekit}";
+                "caddy_0.@lk-jwt-service.path" = "/sfu/get* /healthz* /get_token*";
+                "caddy_0.route" = "@lk-jwt-service";
+                "caddy_0.route.reverse_proxy" = "{{upstreams 8081}}";
+                "caddy_1" = "${cfg.domains.root}";
+                "caddy_1.header" = "Access-Control-Allow-Origin *";
+                "caddy_1.respond_0" = "/.well-known/matrix/server {\"m.server\":\"${cfg.domains.matrix}:443\"} 200";
+                "caddy_1.respond_1" = "/.well-known/matrix/client {\"m.server\":{\"base_url\":\"https://${cfg.domains.matrix}\"},\"m.homeserver\":{\"base_url\":\"https://${cfg.domains.matrix}\"},\"m.identity_server\":{\"base_url\":\"https://${cfg.domains.matrix}\"},\"org.matrix.msc3575.proxy\":{\"url\":\"https://${cfg.domains.matrix}\"},\"org.matrix.msc4143.rtc_foci\":[{\"type\":\"livekit\",\"livekit_service_url\":\"https://${cfg.domains.livekit}\"}]} 200";
+                "caddy_1.respond_2" = "/.well-known/matrix/support {\"contacts\":[{\"email_address\":\"${cfg.contactUser}@${cfg.domains.root}\",\"matrix_id\":\"@${cfg.contactUser}:${cfg.domains.root}\",\"role\":\"m.role.admin\"}]} 200";
+                "caddy_1.redir_0" = "/.well-known/webfinger https://webfinger.timeguard.ca/.well-known/webfinger 301";
+                "caddy_1.@well-known-matchers.not.path" = "/.well-known/matrix/* /.well-known/webfinger";
+                "caddy_1.redir_1" = "@well-known-matchers https://${cfg.domains.redirect}{uri} 302";
+              };
+              logDriver = "journald";
+              networks = [
+                "matrix-backend-call-support_livekit_internal.network"
+                "${caddyNetwork}.network"
+              ];
+              networkAliases = ["lk-jwt-service"];
+            };
+            serviceConfig = {
+              Restart = "always";
+            };
+          };
+          containers.quadlet-livekit = {
+            containerConfig = {
+              name = "livekit";
+              image = "docker.io/livekit/livekit-server:latest";
+              autoUpdate = lib.mkIf config.zelec-core.virtualisation.podman.autoUpdate.enable "registry";
+              exec = "--config /etc/livekit.yaml";
+              publishPorts = [
+                "7881:7881/tcp"
+                "50100-50200:50100-50200/tcp"
+                "50100-50200:50100-50200/udp"
+              ];
+              labels = {
+                "caddy_0" = "${cfg.domains.livekit}";
+                "caddy_0.reverse_proxy" = "{{upstreams 7880}}";
+              };
+              volumes = [
+                "${cfg.config.livekitPath}:/etc/livekit.yaml:ro"
+              ];
+              logDriver = "journald";
+              networks = [
+                "matrix-backend-call-support_livekit_internal.network"
+                "${caddyNetwork}.network"
+              ];
+              networkAliases = ["livekit"];
+            };
+            serviceConfig = {
+              Restart = "always";
+            };
+          };
+          containers.quadlet-coturn = {
+            containerConfig = {
+              name = "coturn";
+              image = "docker.io/coturn/coturn:latest";
+              autoUpdate = lib.mkIf config.zelec-core.virtualisation.podman.autoUpdate.enable "registry";
+              volumes = [
+                "${cfg.config.coturnPath}:/etc/coturn/turnserver.conf:ro"
+              ];
+              logDriver = "journald";
+              networks = ["host"];
+            };
+            serviceConfig = {
+              Restart = "always";
+            };
+          };
+        };
+      })
+    ];
   };
 }

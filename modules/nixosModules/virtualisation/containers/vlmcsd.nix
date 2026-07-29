@@ -89,31 +89,54 @@
   }: let
     cfgRoot = config.zelec-core;
     cfg = cfgRoot.virtualisation.containers.vlmcsd;
+    vlmcsdImage = self.packages.${pkgs.stdenv.hostPlatform.system}.vlmcsd-oci-image;
+    dockerEnabled = config.zelec-core.virtualisation.docker.enable or false;
+    podmanEnabled = config.zelec-core.virtualisation.podman.enable or false;
   in {
     options.zelec-core.virtualisation.containers.vlmcsd = {
       enable = lib.mkEnableOption "Enables vlmcsd container stack";
     };
-
-    config = lib.mkIf cfg.enable {
-      zelec-core.virtualisation.dockerManager.vlmcsd = {
-        containerNames = [
-          "vlmcsd"
-        ];
-      };
-      networking.firewall = {
-        allowedTCPPorts = [
-          1688
-        ];
-      };
-      virtualisation.oci-containers.containers."vlmcsd" = {
-        imageFile = self.packages.${pkgs.stdenv.hostPlatform.system}.vlmcsd-oci-image;
-        image = "docker.tgdev.net/zelec/vlmcsd-tg-nix:latest";
-        pull = "never";
-        ports = [
-          "1688:1688"
-        ];
-        log-driver = "journald";
-      };
-    };
+    config = lib.mkMerge [
+      (lib.mkIf cfg.enable {
+        networking.firewall = {
+          allowedTCPPorts = [
+            1688
+          ];
+        };
+      })
+      (lib.mkIf (cfg.enable && dockerEnabled) {
+        virtualisation.oci-containers.containers."vlmcsd" = {
+          imageFile = vlmcsdImage;
+          image = "docker.tgdev.net/zelec/vlmcsd-tg-nix:latest";
+          pull = "never";
+          ports = [
+            "1688:1688"
+          ];
+          log-driver = "journald";
+        };
+        zelec-core.virtualisation.dockerManager.vlmcsd = {
+          containerNames = [
+            "vlmcsd"
+          ];
+        };
+      })
+      (lib.mkIf (cfg.enable && podmanEnabled) {
+        virtualisation.quadlet = {
+          containers.quadlet-vlmcsd = {
+            containerConfig = {
+              name = "vlmcsd";
+              image = "docker-archive:${vlmcsdImage}";
+              publishPorts = [
+                "1688:1688/tcp"
+              ];
+              logDriver = "journald";
+            };
+            serviceConfig = {
+              Restart = "always";
+            };
+          };
+        };
+      })
+    ];
   };
 }

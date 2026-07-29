@@ -10,6 +10,7 @@
   }: let
     cfgRoot = config.zelec-core;
     cfg = cfgRoot.virtualisation.containers.watchtower;
+    dockerEnabled = config.zelec-core.virtualisation.docker.enable or false;
   in {
     options.zelec-core.virtualisation.containers.watchtower = {
       enable = lib.mkOption {
@@ -46,7 +47,7 @@
         };
       };
     };
-    config = lib.mkIf cfg.enable (lib.mkMerge [
+    config = lib.mkIf (cfg.enable && dockerEnabled) (lib.mkMerge [
       {
         virtualisation.oci-containers.containers."watchtower" = {
           image = "ghcr.io/nicholas-fedor/watchtower:latest";
@@ -59,7 +60,7 @@
           };
           volumes = ["/var/run/docker.sock:/var/run/docker.sock"];
           log-driver = "journald";
-          environmentFiles = [] ++ lib.optionals (cfg.envFilePath != null) [cfg.envFilePath];
+          environmentFiles = lib.optionals (cfg.envFilePath != null) [cfg.envFilePath];
         };
         zelec-core.virtualisation.dockerManager.watchtower = {
           containerNames = [
@@ -76,15 +77,10 @@
           script = ''
             IMAGE="${config.virtualisation.oci-containers.containers."watchtower".image}"
             DOCKER="${pkgs.docker}/bin/docker"
-
             echo "Checking for updates to $IMAGE..."
-
             OLD_SHA=$($DOCKER images -q "$IMAGE" 2>/dev/null || true)
-
             $DOCKER pull "$IMAGE"
-
             NEW_SHA=$($DOCKER images -q "$IMAGE")
-
             if [ "$OLD_SHA" = "$NEW_SHA" ] && [ -n "$OLD_SHA" ]; then
               echo "Watchtower is already on the latest image ($OLD_SHA). Exiting."
             else

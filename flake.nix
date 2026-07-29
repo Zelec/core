@@ -35,6 +35,8 @@
     # Plasma Manager for managing KDE 6 settings
     plasma-manager.url = "github:nix-community/plasma-manager/trunk";
     plasma-manager.inputs.nixpkgs.follows = "nixpkgs";
+    # Quadlet-nix, podman quadlet support
+    quadlet-nix.url = "github:SEIAROTg/quadlet-nix";
     # Stylix, Unified
     stylix.url = "github:danth/stylix?ref=release-26.05";
     stylix.inputs.nixpkgs.follows = "nixpkgs";

@@ -55,9 +55,9 @@
       autoEnable = true;
       base = {
         user = {
-          hashedPasswordFile = builtins.readFile (pkgs.runCommand "test-password-hash" {} ''
+          hashedPasswordFile = "${pkgs.runCommand "test-password-hash" {} ''
             echo -n "Pass2345" | ${pkgs.mkpasswd}/bin/mkpasswd -m sha-512 --stdin > $out
-          '');
+          ''}";
         };
       };
       common = {
@@ -199,11 +199,37 @@
           };
         };
         docker = {
-          enable = true;
+          enable = false;
           nvidia.enable = isX86;
           storageDriver = "btrfs";
         };
         libvirt.enable = true;
+        podman = {
+          enable = true;
+          nvidia.enable = isX86;
+          storageDriver = "btrfs";
+        };
+      };
+    };
+
+    virtualisation.vmVariant = {
+      virtualisation = {
+        memorySize = 4096;
+        cores = 3;
+        # 20 GB
+        diskSize = 20 * 1024;
+        diskImage = "/home/${config.zelec-core.base.user.name}/Temp/zelec-core-nixos-vmdisk.qcow2";
+      };
+      zelec-core = {
+        hardware.nvidia.enable = lib.mkForce false;
+        virtualisation.docker = {
+          nvidia.enable = lib.mkForce false;
+          storageDriver = lib.mkForce "overlay2";
+        };
+        virtualisation.podman = {
+          nvidia.enable = lib.mkForce false;
+          storageDriver = lib.mkForce "overlay";
+        };
       };
     };
 

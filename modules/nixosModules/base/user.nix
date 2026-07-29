@@ -52,15 +52,11 @@
         isNormalUser = true;
         description = cfg.description;
         extraGroups = [
-          "networkmanager"
-          "wheel"
-          "docker"
-          "libvirtd"
-          "kvm"
-          "video"
           "cdrom"
           "dialout"
           "tss"
+          "video"
+          "wheel"
         ];
         hashedPasswordFile = cfg.hashedPasswordFile;
         packages = with pkgs; [

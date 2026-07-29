@@ -8,13 +8,13 @@
     ...
   }: let
     cfgRoot = config.zelec-core;
-    cfg = cfgRoot.virtualisation.containers;
+    enabledSystem = (cfgRoot.virtualisation.docker.enable or false) || (cfgRoot.virtualisation.podman.enable or false);
   in {
     options.zelec-core.virtualisation.containers = {
       enableDefaultContainers = lib.mkOption {
         description = "Enables default containers in this stack";
         type = lib.types.bool;
-        default = cfgRoot.virtualisation.docker.enable;
+        default = enabledSystem;
       };
     };
   };

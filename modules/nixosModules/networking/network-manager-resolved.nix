@@ -14,6 +14,7 @@
       enable = lib.mkEnableOption "Enables NetworkManager along with systemd-resolved";
     };
     config = lib.mkIf cfg.enable {
+      users.users.${config.zelec-core.base.user.name}.extraGroups = ["networkmanager"];
       networking = {
         networkmanager = {
           enable = true;

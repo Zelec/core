@@ -27,6 +27,10 @@
           isSystemUser = true;
           group = "libvirt-qemu";
         };
+        users.${config.zelec-core.base.user.name}.extraGroups = [
+          "libvirtd"
+          "kvm"
+        ];
       };
       programs.virt-manager.enable = cfg.enableVirtManager;
       virtualisation.spiceUSBRedirection.enable = true;

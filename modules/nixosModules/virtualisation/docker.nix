@@ -10,6 +10,7 @@
   }: let
     cfgRoot = config.zelec-core;
     cfg = cfgRoot.virtualisation.docker;
+    podmanEnabled = config.zelec-core.virtualisation.podman.enable or false;
   in {
     options.zelec-core.virtualisation.docker = {
       enable = lib.mkEnableOption "Enables docker";
@@ -19,8 +20,21 @@
       };
       nvidia.enable = lib.mkEnableOption "Enables NVIDIA in Docker";
     };
-    config = lib.mkIf cfg.enable (lib.mkMerge [
+    config = lib.mkMerge [
       {
+        assertions = [
+          {
+            assertion = cfg.enable -> !podmanEnabled;
+            message = ''
+              Conflict detected in `zelec-core`:
+              `zelec-core.virtualisation.podman.enable` cannot be `true` when `zelec-core.virtualisation.docker.enable` is `true`.
+              Please set `zelec-core.virtualisation.podman.enable = false;`.
+            '';
+          }
+        ];
+      }
+      (lib.mkIf cfg.enable {
+        users.users.${config.zelec-core.base.user.name}.extraGroups = ["docker"];
         virtualisation = {
           containers.enable = true;
           oci-containers.backend = "docker";
@@ -34,31 +48,25 @@
             storageDriver = cfg.storageDriver;
           };
         };
-      }
-      (lib.mkIf (cfg.nvidia.enable) {
-        environment.systemPackages = with pkgs; [
-          nvidia-container-toolkit
+        # NVIDIA / CDI Configuration
+        environment.systemPackages = lib.mkIf cfg.nvidia.enable [
+          pkgs.nvidia-container-toolkit
         ];
-        hardware.nvidia-container-toolkit = {
+        hardware.nvidia-container-toolkit = lib.mkIf cfg.nvidia.enable {
           enable = true;
           mount-nvidia-executables = true;
           mount-nvidia-docker-1-directories = true;
           device-name-strategy = "index";
         };
-        virtualisation = {
-          docker = {
-            daemon.settings = {
-              features.cdi = true;
-              # default-runtime =  "nvidia";
-              # runtimes.nvidia.path =  "${pkgs.nvidia-container-toolkit}/bin/nvidia-container-runtime";
-              # exec-opts = ["native.cgroupdriver=cgroupfs"];
-            };
-          };
+        virtualisation.docker.daemon.settings = lib.mkIf cfg.nvidia.enable {
+          features.cdi = true;
         };
+        # Firewall configuration for Docker interfaces
+        networking.firewall.trustedInterfaces = lib.mkIf config.networking.firewall.enable [
+          "docker0"
+          "br-+"
+        ];
       })
-      (lib.mkIf (config.networking.firewall.enable) {
-        networking.firewall.trustedInterfaces = ["docker0" "br-+"];
-      })
-    ]);
+    ];
   };
 }

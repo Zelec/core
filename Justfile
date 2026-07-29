@@ -17,6 +17,11 @@ ci-push: ci
 validate:
   nix flake check --option abort-on-warn false
 
+# Runs base config in VM
+test:
+  nixos-rebuild --flake ./#Test-kde-x86_64-linux build-vm
+  ./result/bin/run-nixos-vm
+
 # Update flake inputs to their latest revisions
 update:
   nix flake update

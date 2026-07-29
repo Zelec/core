@@ -85,9 +85,12 @@
     pkgs,
     ...
   }: let
-    # Fair warning, alot of code from NixPKGs was taken to make the VirtualHosts module work here
     cfgRoot = config.zelec-core;
     cfg = cfgRoot.virtualisation.containers.caddy;
+    caddyImage = self.packages.${pkgs.stdenv.hostPlatform.system}.caddy-oci-image;
+    dockerEnabled = config.zelec-core.virtualisation.docker.enable or false;
+    podmanEnabled = config.zelec-core.virtualisation.podman.enable or false;
+    # Fair warning, alot of code from NixPKGs was taken to make the VirtualHosts module work here
     virtualHosts = cfg.virtualHosts;
     mkVHostConf = hostOpts: ''
       ${hostOpts.hostName} ${lib.concatStringsSep " " hostOpts.serverAliases} {
@@ -278,58 +281,108 @@
     config = let
       files = ./files;
     in
-      lib.mkIf cfg.enable {
-        # Setup outside of the docker namespace so it exists outside the scope of any compose frameworks
-        systemd.services."docker-network-${cfg.dockerNetworkName}" = {
-          path = [pkgs.docker];
-          serviceConfig = {
-            Type = "oneshot";
-            RemainAfterExit = true;
-            #ExecStop = "${pkgs.docker}/bin/docker network rm -f ${cfg.dockerNetworkName}";
+      lib.mkMerge [
+        (lib.mkIf cfg.enable {
+          networking.firewall.allowedTCPPorts = [80 443];
+        })
+        (lib.mkIf (cfg.enable && dockerEnabled) {
+          # Setup outside of the docker namespace so it exists outside the scope of any compose frameworks
+          systemd.services."docker-network-${cfg.dockerNetworkName}" = {
+            path = [pkgs.docker];
+            serviceConfig = {
+              Type = "oneshot";
+              RemainAfterExit = true;
+              #ExecStop = "${pkgs.docker}/bin/docker network rm -f ${cfg.dockerNetworkName}";
+            };
+            script = "docker network inspect ${cfg.dockerNetworkName} || docker network create ${cfg.dockerNetworkName}";
+            partOf = ["docker-compose-webserver-root.target"];
+            wantedBy = ["docker-compose-webserver-root.target"];
           };
-          script = "docker network inspect ${cfg.dockerNetworkName} || docker network create ${cfg.dockerNetworkName}";
-          partOf = ["docker-compose-webserver-root.target"];
-          wantedBy = ["docker-compose-webserver-root.target"];
-        };
-        zelec-core.virtualisation.dockerManager.webserver = {
-          containerNames = [
-            "caddy"
-          ];
-        };
-        virtualisation.oci-containers.containers."caddy" = {
-          imageFile = self.packages.${pkgs.stdenv.hostPlatform.system}.caddy-oci-image;
-          image = "docker.tgdev.net/zelec/caddy-tg-nix:nix-controlled";
-          pull = "never";
-          environment = {
-            "TZ" = cfg.timeZone;
+          zelec-core.virtualisation.dockerManager.webserver = {
+            containerNames = [
+              "caddy"
+            ];
           };
-          cmd = [
-            "caddy"
-            "docker-proxy"
-            "--ingress-networks"
-            "${cfg.dockerNetworkName}"
-            "--caddyfile-path"
-            "/etc/caddy/Caddyfile"
+          virtualisation.oci-containers.containers."caddy" = {
+            imageFile = caddyImage;
+            image = "docker.tgdev.net/zelec/caddy-tg-nix:nix-controlled";
+            pull = "never";
+            environment = {
+              "TZ" = cfg.timeZone;
+            };
+            cmd = [
+              "caddy"
+              "docker-proxy"
+              "--ingress-networks"
+              "${cfg.dockerNetworkName}"
+              "--caddyfile-path"
+              "/etc/caddy/Caddyfile"
+            ];
+            ports = [
+              "80:80"
+              "443:443"
+            ];
+            volumes = [
+              "/var/run/docker.sock:/var/run/docker.sock:ro"
+              "${caddyFile}:/etc/caddy/Caddyfile:ro"
+              "${cfg.configFolder}:/config"
+              "${cfg.dataFolder}:/data"
+              "${files}/errorPages:/errorPages:ro"
+            ];
+            log-driver = "journald";
+            extraOptions = [
+              "--network-alias=caddy"
+              "--network=${cfg.dockerNetworkName}"
+              "--add-host=host.docker.internal:host-gateway"
+            ];
+            environmentFiles = lib.optionals (cfg.envFilePath != null) [cfg.envFilePath];
+          };
+        })
+        (lib.mkIf (cfg.enable && podmanEnabled) {
+          systemd.tmpfiles.rules = [
+            "d ${cfg.appdataFolder} 0755 root root - -"
+            "d ${cfg.configFolder} 0755 root root - -"
+            "d ${cfg.dataFolder} 0755 root root - -"
           ];
-          ports = [
-            "80:80"
-            "443:443"
-          ];
-          volumes = [
-            "/var/run/docker.sock:/var/run/docker.sock:ro"
-            "${caddyFile}:/etc/caddy/Caddyfile:ro"
-            "${cfg.configFolder}:/config"
-            "${cfg.dataFolder}:/data"
-            "${files}/errorPages:/errorPages:ro"
-          ];
-          log-driver = "journald";
-          extraOptions = [
-            "--network-alias=caddy"
-            "--network=${cfg.dockerNetworkName}"
-            "--add-host=host.docker.internal:host-gateway"
-          ];
-          environmentFiles = [] ++ lib.optionals (cfg.envFilePath != null) [cfg.envFilePath];
-        };
-      };
+          virtualisation.quadlet = {
+            networks.${cfg.dockerNetworkName} = {
+              networkConfig = {
+                driver = "bridge";
+              };
+            };
+            containers.quadlet-caddy = {
+              containerConfig = {
+                name = "caddy";
+                image = "docker-archive:${caddyImage}";
+                environments = {
+                  TZ = cfg.timeZone;
+                };
+                environmentFiles = lib.optionals (cfg.envFilePath != null) [cfg.envFilePath];
+                exec = "caddy docker-proxy --ingress-networks ${cfg.dockerNetworkName} --caddyfile-path /etc/caddy/Caddyfile";
+                publishPorts = [
+                  "80:80/tcp"
+                  "443:443/tcp"
+                ];
+                volumes = [
+                  "/run/podman/podman.sock:/var/run/docker.sock:ro"
+                  "${caddyFile}:/etc/caddy/Caddyfile:ro"
+                  "${cfg.configFolder}:/config"
+                  "${cfg.dataFolder}:/data"
+                  "${files}/errorPages:/errorPages:ro"
+                ];
+                logDriver = "journald";
+                networks = [
+                  "${cfg.dockerNetworkName}.network"
+                ];
+                networkAliases = ["caddy"];
+                addHosts = ["host.docker.internal:host-gateway"];
+              };
+              serviceConfig = {
+                Restart = "always";
+              };
+            };
+          };
+        })
+      ];
   };
 }
