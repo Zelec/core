@@ -58,11 +58,17 @@
         lib.mkIf cfg.enable
         {
           users.users.${config.zelec-core.base.user.name}.extraGroups = ["podman"];
-          # Yes I know, I really should not do this
-          # I probably need some time yet to get fully off the docker way of working & thinking
           environment.sessionVariables = {
+            # Yes I know, I really should not do this
+            # I probably need some time yet to get fully off the docker way of working & thinking
             CONTAINER_HOST = "unix:///run/podman/podman.sock";
+            # Gets rid of the compose redirection warning when ran
+            PODMAN_COMPOSE_WARNING_LOGS = "false";
           };
+          # Enables podman-restart on rootful & rootless user sockets
+          # Useful for containers outside the scope of Quadlet-nix
+          systemd.services.podman-restart.wantedBy = ["multi-user.target"];
+          systemd.user.services.podman-restart.wantedBy = ["default.target"];
           virtualisation = {
             containers.enable = true;
             oci-containers.backend = "podman";
@@ -88,14 +94,15 @@
             };
           };
           environment.systemPackages = with pkgs;
-          [
-            podman
-            podman-compose
-          ]
-          # NVIDIA / CDI Configuration
-          ++ lib.optionals cfg.nvidia.enable [
-            nvidia-container-toolkit
-          ];
+            [
+              docker-compose
+              podman
+              podman-compose
+            ]
+            # NVIDIA / CDI Configuration
+            ++ lib.optionals cfg.nvidia.enable [
+              nvidia-container-toolkit
+            ];
           hardware.nvidia-container-toolkit = lib.mkIf cfg.nvidia.enable {
             enable = true;
             mount-nvidia-executables = true;
@@ -104,7 +111,7 @@
           };
           # Firewall configuration for Podman interfaces
           networking.firewall.trustedInterfaces = lib.mkIf config.networking.firewall.enable [
-            "podman0"
+            "podman+"
             "br-+"
           ];
         }
