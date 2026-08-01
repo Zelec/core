@@ -35,7 +35,6 @@
           devenv
           dig
           distrobox
-          docker-compose
           e2fsprogs
           ffmpeg
           git

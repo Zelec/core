@@ -87,7 +87,15 @@
               };
             };
           };
-          # NVIDIA / CDI Configuration for Podman
+          environment.systemPackages = with pkgs;
+          [
+            podman
+            podman-compose
+          ]
+          # NVIDIA / CDI Configuration
+          ++ lib.optionals cfg.nvidia.enable [
+            nvidia-container-toolkit
+          ];
           hardware.nvidia-container-toolkit = lib.mkIf cfg.nvidia.enable {
             enable = true;
             mount-nvidia-executables = true;

@@ -48,10 +48,15 @@
             storageDriver = cfg.storageDriver;
           };
         };
-        # NVIDIA / CDI Configuration
-        environment.systemPackages = lib.mkIf cfg.nvidia.enable [
-          pkgs.nvidia-container-toolkit
-        ];
+        environment.systemPackages = with pkgs;
+          [
+            docker
+            docker-compose
+          ]
+          # NVIDIA / CDI Configuration
+          ++ lib.optionals cfg.nvidia.enable [
+            nvidia-container-toolkit
+          ];
         hardware.nvidia-container-toolkit = lib.mkIf cfg.nvidia.enable {
           enable = true;
           mount-nvidia-executables = true;

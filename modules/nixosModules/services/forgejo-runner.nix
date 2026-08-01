@@ -63,20 +63,23 @@
       };
       hostPackages = lib.mkOption {
         type = lib.types.listOf lib.types.package;
-        default = with pkgs; [
-          bash
-          coreutils
-          curl
-          gawk
-          git
-          gnused
-          jq
-          nix
-          nodejs
-          openssh
-          ssh-agents
-          wget
-        ];
+        default = with pkgs;
+          [
+            bash
+            coreutils
+            curl
+            gawk
+            git
+            gnused
+            jq
+            nix
+            nodejs
+            openssh
+            ssh-agents
+            wget
+          ]
+          ++ lib.optionals config.zelec-core.virtualisation.docker.enable [docker docker-compose]
+          ++ lib.optionals config.zelec-core.virtualisation.podman.enable [podman podman-compose];
       };
     };
     config = lib.mkIf cfg.enable (lib.mkMerge [
@@ -85,13 +88,16 @@
         users.users.gitea-runner = {
           isSystemUser = true;
           group = "gitea-runner";
+          extraGroups =
+            lib.optionals config.zelec-core.virtualisation.docker.enable ["docker"]
+            ++ lib.optionals config.zelec-core.virtualisation.podman.enable ["podman"];
         };
         users.groups.gitea-runner = {};
         systemd.services.gitea-runner-base = {
           serviceConfig = {
             User = "gitea-runner";
             Group = "gitea-runner";
-            DynamicUser = lib.mkForce false; # fix
+            DynamicUser = lib.mkForce false;
           };
         };
         services.gitea-actions-runner = {
