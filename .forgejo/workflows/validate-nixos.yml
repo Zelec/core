@@ -38,3 +38,9 @@ jobs:
           github_token: ${{ secrets.PAT_GITHUB }}
       - name: Verify Flake Metadata
         run: nix build github:srid/devour-flake --dry-run -L --no-link --print-out-paths --override-input flake ./
+      - name: Build Package Caddy
+        run: nix build ./#packages.${{ matrix.system }}.caddy-docker-proxy
+      - name: Build Package Zot
+        run: nix build ./#packages.${{ matrix.system }}.zot
+      - name: Build Package Zot-Docker-Proxy
+        run: nix build ./#packages.${{ matrix.system }}.zot-docker-proxy

@@ -9,8 +9,8 @@
 }: {
   perSystem = {pkgs, ...}: let
     # Output hash of the caddy src plus plugins below
-    # last reason this changed: Upgrade to 26.05 coincidentally had Caddy 2.11.4
-    caddyHash = "sha256-OYJ5lHiwNc1HMA01NaS3c8x86znSCgU7Np/SuPPQnKk=";
+    # last reason this changed: Go updates, and I updated caddy-docker-proxy while I was changing the hash anyways
+    caddyHash = "sha256-w8GVSSvRSV4bp9Sye0UsmDRQJwNEr8VmvygLBT34nIg=";
   in {
     packages = {
       caddy-docker-proxy = pkgs.caddy.withPlugins {
@@ -21,9 +21,9 @@
           # No releases available for this plugin
           # https://github.com/mentimeter/caddy-storage-cf-kv/commit/939ac14649ca537a3cd7108e46cd57cfda593a91
           "github.com/mentimeter/caddy-storage-cf-kv@v0.0.0-20250219160011-939ac14649ca"
-          # https://github.com/lucaslorentz/caddy-docker-proxy/releases/tag/v2.12.0
-          # https://github.com/lucaslorentz/caddy-docker-proxy/commit/2eafc7ee742e77eacfc78f2c64095bc396eb3ea6
-          "github.com/lucaslorentz/caddy-docker-proxy/v2@v2.12.0"
+          # https://github.com/lucaslorentz/caddy-docker-proxy/releases/tag/v2.13.1
+          # https://github.com/lucaslorentz/caddy-docker-proxy/commit/2434d713b4906d12f3379ecb8a584e0ef97e6039
+          "github.com/lucaslorentz/caddy-docker-proxy/v2@v2.13.1"
         ];
         hash = caddyHash;
       };
@@ -347,6 +347,7 @@
           virtualisation.quadlet = {
             networks.${cfg.dockerNetworkName} = {
               networkConfig = {
+                name = cfg.dockerNetworkName;
                 driver = "bridge";
               };
             };
@@ -359,6 +360,12 @@
                 };
                 environmentFiles = lib.optionals (cfg.envFilePath != null) [cfg.envFilePath];
                 exec = "caddy docker-proxy --ingress-networks ${cfg.dockerNetworkName} --caddyfile-path /etc/caddy/Caddyfile";
+                # https://github.com/lucaslorentz/caddy-docker-proxy/issues/697#issuecomment-2684565087
+                # Next two to four lines are to make caddy-docker-proxy run better on podman
+                environments = {
+                  CADDY_DOCKER_NO_SCOPE = "true";
+                };
+                securityLabelDisable = true;
                 publishPorts = [
                   "80:80/tcp"
                   "443:443/tcp"
