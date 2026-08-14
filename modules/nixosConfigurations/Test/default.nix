@@ -208,6 +208,13 @@
           enable = true;
           nvidia.enable = isX86;
           storageDriver = "btrfs";
+          autoUpdate = {
+            enable = true;
+            # WIP
+            notificationENVFile = "${pkgs.runCommand "podman-notification-env" {} ''
+              echo "SHOUTARR_URL=discord://faketoken@fakeid" > $out
+            ''}";
+          };
         };
       };
     };

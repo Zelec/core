@@ -15,6 +15,43 @@
     cfgRoot = config.zelec-core;
     cfg = cfgRoot.virtualisation.podman;
     dockerEnabled = config.zelec-core.virtualisation.docker.enable or false;
+    smartUpdateScript = pkgs.writeShellScript "smart-podman-update" ''
+      set -euo pipefail
+
+      OUTPUT=$(${pkgs.podman}/bin/podman auto-update --format json)
+      UPDATED_COUNT=$(echo "$OUTPUT" | ${pkgs.jq}/bin/jq '[.[] | select(.Updated == "true")] | length')
+      FAILED_COUNT=$(echo "$OUTPUT" | ${pkgs.jq}/bin/jq '[.[] | select(.Updated == "failed")] | length')
+      if [ "$UPDATED_COUNT" -gt 0 ] && [ "$FAILED_COUNT" -eq 0 ]; then
+        SUMMARY=$(echo "$OUTPUT" | ${pkgs.jq}/bin/jq -r '.[] | select(.Updated == "true") | "• \(.UnitName): Updated (Old: \(.ImageID[0:12]) -> New: \(.NewImageID[0:12]))"')
+        ${pkgs.shoutrrr}/bin/shoutrrr send \
+          --url "''${SHOUTARR_URL}" \
+          --message "**Podman Auto-Update Success** ($UPDATED_COUNT updated):
+
+      $SUMMARY"
+      fi
+
+      # Send targeted failure alert if specific containers failed
+      if [ "$FAILED_COUNT" -gt 0 ]; then
+        FAILED_SUMMARY=$(echo "$OUTPUT" | ${pkgs.jq}/bin/jq -r '.[] | select(.Updated == "failed") | "• \(.UnitName): Restart/Rollback Failed!"')
+
+        ${pkgs.shoutrrr}/bin/shoutrrr send \
+          --url "''${SHOUTARR_URL}" \
+          --message "**Podman Container Update FAILED** ($FAILED_COUNT failed):
+
+      $FAILED_SUMMARY"
+      fi
+    '';
+    unitFailureScript = pkgs.writeShellScript "notify-podman-unit-failed" ''
+      LOG_OUTPUT=$(${pkgs.systemd}/bin/journalctl -u podman-auto-update.service -n 25 --no-pager)
+
+      ${pkgs.shoutrrr}/bin/shoutrrr send \
+        --url "''${SHOUTARR_URL}" \
+        --message "**podman-auto-update.service Crash**:
+
+      \`\`\`
+      $LOG_OUTPUT
+      \`\`\`"
+    '';
   in {
     imports = [
       inputs.quadlet-nix.nixosModules.quadlet
@@ -32,6 +69,16 @@
           default = "02:00"; # Runs daily at 2:00 AM
           example = "Sun *-*-* 03:00:00"; # Weekly on Sunday at 3:00 AM
           description = "systemd OnCalendar expression defining when auto-updates trigger";
+        };
+        # WIP
+        notificationENVFile = lib.mkOption {
+          type = lib.types.nullOr lib.types.str;
+          default = null;
+          example = "/run/secrets/podman-auto-update-shoutarr.env";
+          description = ''
+            Path to ENV file that contains the following:
+            SHOUTARR_URL=discord://token@id
+          '';
         };
       };
       storageDriver = lib.mkOption {
@@ -65,6 +112,24 @@
             # Gets rid of the compose redirection warning when ran
             PODMAN_COMPOSE_WARNING_LOGS = "false";
           };
+          # If notifications are set
+          systemd.services.podman-auto-update = lib.mkIf (cfg.autoUpdate.notificationENVFile != null) {
+            unitConfig = {
+              OnFailure = ["podman-auto-update-failure.service"];
+            };
+            serviceConfig = {
+              EnvironmentFile = cfg.autoUpdate.notificationENVFile;
+              ExecStart = ["" "${smartUpdateScript}"]; # Clear and override default command
+            };
+          };
+          systemd.services."podman-auto-update-failure" = lib.mkIf (cfg.autoUpdate.notificationENVFile != null) {
+            description = "Notify on total podman auto-update process failure";
+            serviceConfig = {
+              Type = "oneshot";
+              EnvironmentFile = cfg.autoUpdate.notificationENVFile;
+              ExecStart = "${unitFailureScript}";
+            };
+          };
           # Enables podman-restart on rootful & rootless user sockets
           # Useful for containers outside the scope of Quadlet-nix
           systemd.services.podman-restart.wantedBy = ["multi-user.target"];
@@ -77,6 +142,7 @@
               autoPrune = {
                 enable = true;
                 dates = "weekly";
+                flags = ["--filter=label!=io.podman.prune.prevent=true"];
               };
               dockerCompat = true;
               dockerSocket.enable = true;

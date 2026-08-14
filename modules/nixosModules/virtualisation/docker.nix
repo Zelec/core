@@ -43,6 +43,7 @@
             autoPrune = {
               enable = true;
               dates = "weekly";
+              flags = ["--filter=label!=io.docker.prune.prevent=true"];
             };
             liveRestore = false;
             storageDriver = cfg.storageDriver;
