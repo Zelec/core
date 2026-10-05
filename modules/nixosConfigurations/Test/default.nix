@@ -33,7 +33,11 @@
   in
     lib.foldr (a: b: a // b) {} allTests;
   flake.nixosModules.hosts-Test-kde = {
-    zelec-core.desktops.kde.enable = true;
+    zelec-core.desktops.kde = {
+      enable = true;
+      enableAutoLogin = true;
+      forceLockOnFirstLogin = false;
+    };
   };
   flake.nixosModules.hosts-Test-hyprland = {
     zelec-core.desktops.hyprland.enable = true;

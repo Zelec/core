@@ -17,6 +17,12 @@
   in {
     options.zelec-core.desktops.kde = {
       enable = lib.mkEnableOption "Turns on KDE Desktop";
+      enableAutoLogin = lib.mkOption {
+        description = "Enables autologin via SDDM";
+        type = lib.types.bool;
+        default = cfg.enable;
+      };
+      forceLockOnFirstLogin = lib.mkEnableOption "Enables little auto-login script to auto lock the session when signing in the first time (Helpful when autologin is turned on)";
     };
     config = lib.mkIf cfg.enable {
       zelec-core = {
@@ -67,7 +73,7 @@
             enable = true;
             wayland.enable = true;
           };
-          autoLogin = {
+          autoLogin = lib.mkIf cfg.enableAutoLogin {
             enable = true;
             user = config.zelec-core.base.user.name;
           };
@@ -89,6 +95,15 @@
       };
       home-manager.sharedModules = [inputs.plasma-manager.homeModules.plasma-manager];
       home-manager.users.${config.zelec-core.base.user.name} = {
+        xdg.configFile."autostart/lock-on-startup.desktop" = lib.mkIf cfg.forceLockOnFirstLogin {
+          text = ''
+            [Desktop Entry]
+            Type=Application
+            Name=Lock Session on Startup (Nix Controlled)
+            Exec=loginctl lock-session
+            X-KDE-autostart-condition=ksmserver
+          '';
+        };
         programs.plasma = {
           enable = true;
           shortcuts = {

@@ -40,6 +40,11 @@
           type = lib.types.str;
           default = "America/Toronto";
         };
+        testing = lib.mkOption {
+          description = "Allows working with & enabling partially written modules, your millage will vary, only enable this if you know what your doing";
+          type = lib.types.bool;
+          default = false;
+        };
       };
     };
     config = lib.mkIf cfg.enable {
