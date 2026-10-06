@@ -50,6 +50,7 @@
                 };
               };
               "remote.autoForwardPortsSource" = "hybrid";
+              "scm.defaultViewMode" = "tree";
               "terminal.integrated.stickyScroll.enabled" = false;
               "workbench.iconTheme" = "vscode-icons";
             };

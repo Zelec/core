@@ -181,9 +181,6 @@
           caddy = {
             enable = true;
             envFilePath = toString pkgs.emptyFile;
-            subsites = {
-              webfinger.enable = true;
-            };
           };
           enableDefaultContainers = true;
           matrix-backend-call-support = {

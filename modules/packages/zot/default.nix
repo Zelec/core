@@ -1,27 +1,27 @@
 # Taken from https://github.com/ijohanne/nur-packages/
 # Touched up to upgrade to 2.1.17
 {self, ...}: {
-  perSystem = {pkgs, ...}: let
+  perSystem = {pkgs, lib, ...}: let
   in {
     packages = {
       zot = let
         # Zot ui
         zuiSrc = pkgs.fetchurl {
-          # https://github.com/project-zot/zui/releases/tag/commit-89a04ea
-          url = "https://github.com/project-zot/zui/releases/download/commit-89a04ea/zui.tgz";
-          hash = "sha256-R1F/1KYHhgJad/cH4jUbRDA8LwvwTTgasv0gqADU8wc=";
+          # https://github.com/project-zot/zui/releases/tag/commit-8e8457d
+          url = "https://github.com/project-zot/zui/releases/download/commit-8e8457d/zui.tgz";
+          hash = "sha256-UiGk+ndJ+xrJJchAsuaIZbXhWWf9ycWPCntlQzyYoNw=";
         };
       in
         pkgs.buildGoModule rec {
           pname = "zot";
-          version = "2.1.17";
+          version = "2.1.21";
           src = pkgs.fetchFromGitHub {
             owner = "project-zot";
             repo = "zot";
             rev = "v${version}";
-            sha256 = "sha256-/1QEMpDq8okaVWhaynlJ+tE1b6AObUnHfHrmnylBKL0=";
+            sha256 = "sha256-u9fO1akusG6lfEf++XyqDuZAzkuGRu1p4ggiZrMEwLM=";
           };
-          vendorHash = "sha256-09LQKBKyqpgBbC44VPsZ3RJcwrHWy6TpF87u35UgcYI=";
+          vendorHash = "sha256-yKJWGv5G1V1WuNY0OLsx7Hvn+fttWwVGytiPTiBXlio=";
           doCheck = true;
           env = {
             CGO_ENABLED = "0";
