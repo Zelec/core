@@ -30,6 +30,11 @@
         type = lib.types.bool;
         default = false;
       };
+      testing = lib.mkOption {
+        description = "Allows working with & enabling partially written modules, your millage will vary, only enable this if you know what your doing";
+        type = lib.types.bool;
+        default = false;
+      };
       base = {
         enable = lib.mkOption {
           description = "Turns on base-module options";
@@ -39,11 +44,6 @@
         timeZone = lib.mkOption {
           type = lib.types.str;
           default = "America/Toronto";
-        };
-        testing = lib.mkOption {
-          description = "Allows working with & enabling partially written modules, your millage will vary, only enable this if you know what your doing";
-          type = lib.types.bool;
-          default = false;
         };
       };
     };

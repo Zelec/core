@@ -26,10 +26,7 @@
     config = let
       defaultOverlays =
         [
-          inputs.copyparty.overlays.default
-          inputs.nix-vscode-extensions.overlays.default
-          inputs.nur.overlays.default
-          inputs.nvidia-patch.overlays.default
+          self.overlays.default
         ]
         ++ cfg.nix-common.extraOverlays;
       baseNixPkgConfig = {
