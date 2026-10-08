@@ -83,11 +83,10 @@
       systemd.services.restic-backups-archive = {
         unitConfig.RequiresMountsFor = "${cfg.mountPoint}";
       };
-      environment.etc.crypttab = {
-        mode = "0600";
-        text = ''
-          ${cfg.mapperName} /dev/disk/by-label/${cfg.deviceLabel} ${cfg.deviceEncryptionKeyPath} luks,noauto,nofail,discard
-        '';
+      zelec-core.base.crypttab-entries.${cfg.mapperName} = {
+        device = "/dev/disk/by-label/${cfg.deviceLabel}";
+        key = "${cfg.deviceEncryptionKeyPath}";
+        options = "luks,noauto,nofail,discard";
       };
       systemd.services."systemd-cryptsetup@${cfg.mapperName}" = {
         overrideStrategy = "asDropin";

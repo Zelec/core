@@ -17,6 +17,7 @@
   in {
     imports = with self.nixosModules; [
       # Other base modules
+      base-crypttab-entries
       base-nix-common
       base-system-tweaks
       base-user
