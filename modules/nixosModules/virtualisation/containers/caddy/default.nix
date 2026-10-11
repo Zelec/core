@@ -9,8 +9,8 @@
 }: {
   perSystem = {pkgs, ...}: let
     # Output hash of the caddy src plus plugins below
-    # last reason this changed: Go updates, and I updated caddy-docker-proxy while I was changing the hash anyways
-    caddyHash = "sha256-w8GVSSvRSV4bp9Sye0UsmDRQJwNEr8VmvygLBT34nIg=";
+    # last reason this changed: Nixpkg updates, probably Go updates
+    caddyHash = "sha256-1up9REBFpC73LyMjgQOWifpPqRcXMI+say3Qltdb1TE=";
   in {
     packages = {
       caddy-docker-proxy = pkgs.caddy.withPlugins {
