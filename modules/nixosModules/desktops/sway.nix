@@ -13,6 +13,11 @@
   in {
     options.zelec-core.desktops.sway = {
       enable = lib.mkEnableOption "Turns on Hyprland Desktop";
+      enableAutoLogin = lib.mkOption {
+        description = "Enables autologin via SDDM";
+        type = lib.types.bool;
+        default = cfg.enable;
+      };
     };
     config = lib.mkIf cfg.enable {
       zelec-core = {
@@ -43,7 +48,7 @@
         defaultSession = "sway";
         sddm.enable = true;
         sddm.wayland.enable = true;
-        autoLogin.enable = true;
+        autoLogin.enable = cfg.enableAutoLogin;
         autoLogin.user = config.zelec-core.base.user.name;
       };
       xdg.portal = {
