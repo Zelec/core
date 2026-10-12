@@ -36,7 +36,7 @@
         protocol = "cloudflare";
         ssl = true;
         username = "token";
-        passwordFile = cfg.passwordFile;
+        inherit (cfg) passwordFile;
         extraConfig = cfg.configOptions;
       };
     };

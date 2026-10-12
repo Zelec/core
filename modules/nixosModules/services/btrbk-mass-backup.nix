@@ -80,49 +80,51 @@
           OnCalendar = cfg.calendarTime;
         };
       };
-      systemd.services.restic-backups-archive = {
-        unitConfig.RequiresMountsFor = "${cfg.mountPoint}";
-      };
       zelec-core.base.crypttab-entries.${cfg.mapperName} = {
         device = "/dev/disk/by-label/${cfg.deviceLabel}";
         key = "${cfg.deviceEncryptionKeyPath}";
         options = "luks,noauto,nofail,discard";
       };
-      systemd.services."systemd-cryptsetup@${cfg.mapperName}" = {
-        overrideStrategy = "asDropin";
-        unitConfig = {
-          StopWhenUnneeded = true;
-          StopPropagatedFrom = ["${lib.replaceStrings ["/"] ["-"] (lib.removePrefix "/" cfg.mountPoint)}.mount"];
+      systemd = {
+        services.restic-backups-archive = {
+          unitConfig.RequiresMountsFor = "${cfg.mountPoint}";
         };
-      };
-      systemd.mounts = [
-        {
-          where = cfg.mountPoint;
-          what = mapperFullName;
-          type = "ext4";
-          mountConfig = {
-            TimeoutSec = "15s";
-            Options = "noatime,noauto,nofail";
-          };
+        services."systemd-cryptsetup@${cfg.mapperName}" = {
+          overrideStrategy = "asDropin";
           unitConfig = {
-            BindsTo = ["systemd-cryptsetup@${cfg.mapperName}.service"];
-            After = ["systemd-cryptsetup@${cfg.mapperName}.service"];
-            Requires = ["systemd-cryptsetup@${cfg.mapperName}.service"];
+            StopWhenUnneeded = true;
+            StopPropagatedFrom = ["${lib.replaceStrings ["/"] ["-"] (lib.removePrefix "/" cfg.mountPoint)}.mount"];
           };
-        }
-      ];
-      systemd.automounts = [
-        {
-          description = "Automount for Rotated Encrypted Data Drives";
-          where = cfg.mountPoint;
-          wantedBy = ["multi-user.target"];
-          automountConfig.TimeoutIdleSec = "300s";
-        }
-      ];
-      systemd.tmpfiles.rules = [
-        "d ${cfg.mountPoint} 0750 root root - -"
-        "h ${cfg.mountPoint} - - - - +i"
-      ];
+        };
+        mounts = [
+          {
+            where = cfg.mountPoint;
+            what = mapperFullName;
+            type = "ext4";
+            mountConfig = {
+              TimeoutSec = "15s";
+              Options = "noatime,noauto,nofail";
+            };
+            unitConfig = {
+              BindsTo = ["systemd-cryptsetup@${cfg.mapperName}.service"];
+              After = ["systemd-cryptsetup@${cfg.mapperName}.service"];
+              Requires = ["systemd-cryptsetup@${cfg.mapperName}.service"];
+            };
+          }
+        ];
+        automounts = [
+          {
+            description = "Automount for Rotated Encrypted Data Drives";
+            where = cfg.mountPoint;
+            wantedBy = ["multi-user.target"];
+            automountConfig.TimeoutIdleSec = "300s";
+          }
+        ];
+        tmpfiles.rules = [
+          "d ${cfg.mountPoint} 0750 root root - -"
+          "h ${cfg.mountPoint} - - - - +i"
+        ];
+      };
     };
   };
 }

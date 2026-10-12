@@ -91,7 +91,7 @@
         stylix.targets.firefox.profileNames = [cfg.managedProfileName];
         programs.firefox = {
           enable = true;
-          package = cfg.package;
+          inherit (cfg) package;
           # because home manager state is less than 26.05 I have to define the config path to silence the new warning
           configPath = ".mozilla/firefox";
           policies = {

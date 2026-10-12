@@ -15,7 +15,7 @@
       enable = lib.mkEnableOption "Enables vscodium";
     };
     config = lib.mkIf cfg.enable {
-      home-manager.users.${config.zelec-core.base.user.name} = {...}: {
+      home-manager.users.${config.zelec-core.base.user.name} = {
         # Simple package rename to redirect all calls for code to codium
         # Muscle memory be dammed
         home.packages = [

@@ -1,8 +1,5 @@
 # Default overlay set for use internally & externally if needed
-{
-  inputs,
-  ...
-}: {
+{inputs, ...}: {
   flake.overlays.default = final: prev: let
     composed = inputs.nixpkgs.lib.composeManyExtensions [
       inputs.copyparty.overlays.default

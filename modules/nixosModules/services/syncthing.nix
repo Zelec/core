@@ -57,9 +57,7 @@
           portString = builtins.toString cfg.guiPort;
         in {
           enable = true;
-          user = cfg.user;
-          dataDir = cfg.dataDir;
-          configDir = cfg.configDir;
+          inherit (cfg) user dataDir configDir;
           guiAddress = "${cfg.guiAddress}:${portString}";
           openDefaultPorts = true;
           # Apparently these override settings are set to true by default, not sure how I've never run into issues with this before
@@ -83,7 +81,7 @@
         lib.mkIf (cfg.guiPasswordFile != null)
         {
           services.syncthing = {
-            guiPasswordFile = cfg.guiPasswordFile;
+            inherit (cfg) guiPasswordFile;
             settings.gui.user = cfg.guiUser;
           };
         }
@@ -92,8 +90,7 @@
         lib.mkIf (cfg.key != null && cfg.cert != null)
         {
           services.syncthing = {
-            key = cfg.key;
-            cert = cfg.cert;
+            inherit (cfg) key cert;
           };
         }
       )

@@ -93,11 +93,7 @@
         enable = true;
         # Breaks Plasma6 horribly
         # targets.qt.platform = lib.mkForce "qtct";
-        autoEnable = cfg.autoEnable;
-        image = cfg.image;
-        polarity = cfg.polarity;
-        base16Scheme = cfg.base16Scheme;
-        fonts = cfg.fonts;
+        inherit (cfg) autoEnable fonts image polarity base16Scheme;
       };
       home-manager.users.${config.zelec-core.base.user.name} = {
         # Being managed by Plasma Manager, still references the above though

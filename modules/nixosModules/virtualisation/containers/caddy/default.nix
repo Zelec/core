@@ -91,7 +91,7 @@
     dockerEnabled = config.zelec-core.virtualisation.docker.enable or false;
     podmanEnabled = config.zelec-core.virtualisation.podman.enable or false;
     # Fair warning, alot of code from NixPKGs was taken to make the VirtualHosts module work here
-    virtualHosts = cfg.virtualHosts;
+    inherit (cfg) virtualHosts;
     mkVHostConf = hostOpts: ''
       ${hostOpts.hostName} ${lib.concatStringsSep " " hostOpts.serverAliases} {
         ${lib.optionalString (

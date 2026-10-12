@@ -1,6 +1,5 @@
 {self, ...}: {
-  perSystem = {pkgs, ...}: let
-  in {
+  perSystem = {pkgs, ...}: {
     packages = {
       btrbk-mass-backup = pkgs.writeShellApplication {
         name = "btrbk-mass-backup";

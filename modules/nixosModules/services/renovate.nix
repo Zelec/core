@@ -142,12 +142,11 @@
       nix.settings.allowed-users = ["renovate"];
       services.renovate = {
         enable = true;
-        runtimePackages = cfg.runtimePackages;
+        inherit (cfg) runtimePackages schedule;
         validateSettings = true;
-        schedule = cfg.schedule;
         settings = {
+          inherit (cfg) endpoint platform;
           autodiscover = true;
-          endpoint = cfg.endpoint;
           gitAuthor = "Renovate <renovate@timeguard.ca>";
           lockFileMaintenance.enabled = true;
           nix.enabled = true;
@@ -157,7 +156,6 @@
               "local>Renovate-Bot/renovate-config"
             ];
           };
-          platform = cfg.platform;
           rebaseWhen = "behind-base-branch";
           timezone = config.zelec-core.base.timeZone;
         };

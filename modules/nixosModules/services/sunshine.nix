@@ -28,7 +28,7 @@
           # All that is needed to get it working now
           # https://github.com/NixOS/nixpkgs/issues/305891#issuecomment-3707474398
           cudaSupport = cfg.enableCUDA;
-          cudaPackages = pkgs.cudaPackages;
+          inherit (pkgs) cudaPackages;
         };
       };
       services.avahi.publish = {

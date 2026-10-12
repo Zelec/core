@@ -127,7 +127,7 @@
             "d /mnt 0775 root root - -"
           ];
         }
-        (lib.mkIf (config.services.displayManager.enable) {
+        (lib.mkIf config.services.displayManager.enable {
           programs.ssh.startAgent = false;
           services.gnome.gcr-ssh-agent.enable = true;
         })

@@ -31,6 +31,7 @@
           coreutils
           cryptsetup
           curl
+          deadnix
           devbox
           devenv
           dig
@@ -51,10 +52,14 @@
           mosh
           nano
           ncdu
+          nh
           nix-eval-jobs
           nix-fast-build
+          nix-output-monitor
+          nixd
           nixos-install-tools
           ntfs3g
+          nvd
           omnix
           pciutils
           polkit
@@ -63,6 +68,7 @@
           screen
           smartmontools
           sops
+          statix
           terraform
           tmux
           unzip

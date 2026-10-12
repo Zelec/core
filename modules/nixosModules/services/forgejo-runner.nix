@@ -104,9 +104,9 @@
           package = pkgs.forgejo-runner;
           instances = {
             base = {
+              inherit (cfg) url hostPackages;
               enable = true;
               name = "${cfg.name}-base";
-              url = cfg.url;
               tokenFile = cfg.forgejoRunnerTokenPath;
               labels =
                 lib.optionals cfg.enableGenericLabels [
@@ -130,7 +130,6 @@
                 [
                   "nix-container-builder-${pkgs.stdenv.hostPlatform.system}:docker://docker.tgdev.net/public/nix-runner:latest"
                 ];
-              hostPackages = cfg.hostPackages;
               settings = {
                 cache = {
                   enabled = true;
@@ -159,7 +158,7 @@
           privileged = {
             enable = cfg.enablePrivilegedLabels;
             name = "${cfg.name}-privileged";
-            url = cfg.url;
+            inherit (cfg) url hostPackages;
             tokenFile = cfg.forgejoRunnerTokenPath;
             labels = [
               "privileged-ubuntu-latest:docker://${cfg.runnerImageRoot}:act-latest"
@@ -167,7 +166,6 @@
               "privileged-ubuntu-20.04:docker://${cfg.runnerImageRoot}:act-20.04"
               "privileged-ubuntu-18.04:docker://${cfg.runnerImageRoot}:act-18.04"
             ];
-            hostPackages = cfg.hostPackages;
             settings = {
               cache = {
                 enabled = true;

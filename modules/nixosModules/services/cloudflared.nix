@@ -69,7 +69,7 @@
       };
       services.cloudflared = {
         enable = true;
-        certificateFile = cfg.certificateFile;
+        inherit (cfg) certificateFile;
         tunnels =
           lib.mapAttrs (uuid: tunnelCfg: {
             inherit (tunnelCfg) credentialsFile default;

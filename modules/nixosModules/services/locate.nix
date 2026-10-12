@@ -25,7 +25,7 @@
       services.locate = {
         enable = true;
         package = pkgs.plocate;
-        interval = cfg.interval;
+        inherit (cfg) interval;
         pruneFS = lib.mkOptionDefault [
           "fuse.gocryptfs"
         ];

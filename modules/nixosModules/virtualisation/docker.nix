@@ -46,7 +46,7 @@
               flags = ["--filter=label!=io.docker.prune.prevent=true"];
             };
             liveRestore = false;
-            storageDriver = cfg.storageDriver;
+            inherit (cfg) storageDriver;
           };
         };
         environment.systemPackages = with pkgs;

@@ -26,7 +26,7 @@
           ];
         }
         (
-          lib.mkIf (config.services.tailscale.enable) {
+          lib.mkIf config.services.tailscale.enable {
             checkReversePath = "loose";
           }
         )

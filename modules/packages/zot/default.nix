@@ -1,8 +1,11 @@
 # Taken from https://github.com/ijohanne/nur-packages/
 # Touched up to upgrade to 2.1.17
 {self, ...}: {
-  perSystem = {pkgs, lib, ...}: let
-  in {
+  perSystem = {
+    pkgs,
+    lib,
+    ...
+  }: {
     packages = {
       zot = let
         # Zot ui
@@ -71,7 +74,6 @@
       cfg = config.services.zot;
       package = self.packages.${pkgs.stdenv.hostPlatform.system}.zot;
       settingsFormat = pkgs.formats.json {};
-
       hasAuthUsers = cfg.auth.users != {};
       hasMetricsUser = cfg.metrics.enable && hasAuthUsers;
       metricsPasswordFile = pkgs.writeText "zot-metrics-password" cfg.metrics.password;
@@ -86,7 +88,6 @@
       hasUsers = allUsers != {};
       adminUsers = attrNames (filterAttrs (_: u: u.admin) allUsers);
       htpasswdPath = "${cfg.dataDir}/htpasswd";
-
       defaultSettings = {
         distSpecVersion = "1.1.1";
         storage = {
@@ -117,13 +118,11 @@
           lint.enable = true;
         };
       };
-
       repopolicies =
         mapAttrs (_: repo: {
           inherit (repo) policies defaultPolicy anonymousPolicy;
         })
         cfg.accessControl.repositories;
-
       authSettings = optionalAttrs hasUsers {
         http = {
           auth = {
@@ -152,18 +151,15 @@
             };
         };
       };
-
       cleanKeepTag = kt:
         filterAttrs (_: v: v != null && v != []) {
           inherit (kt) patterns mostRecentlyPushedCount mostRecentlyPulledCount pulledWithin pushedWithin;
         };
-
       defaultRetentionPolicy = {
         repositories = ["**"];
         inherit (cfg.retention.defaultPolicy) deleteReferrers deleteUntagged;
         keepTags = map cleanKeepTag cfg.retention.defaultPolicy.keepTags;
       };
-
       allRetentionPolicies =
         (map (p: {
             inherit (p) repositories deleteReferrers deleteUntagged;
@@ -178,10 +174,8 @@
           policies = allRetentionPolicies;
         };
       };
-
       effectiveSettings = lib.recursiveUpdate (lib.recursiveUpdate (lib.recursiveUpdate defaultSettings authSettings) retentionSettings) cfg.settings;
       configFile = settingsFormat.generate "zot-config.json" effectiveSettings;
-
       generateHtpasswd = let
         userNames = attrNames allUsers;
         commands =
@@ -209,7 +203,7 @@
                 description = "Directory for zot storage.";
               };
               settings = mkOption {
-                type = settingsFormat.type;
+                inherit (settingsFormat) type;
                 default = {};
                 description = "Zot configuration rendered to JSON, merged over defaults and auth settings.";
               };
@@ -450,19 +444,16 @@
           };
           default = {};
         };
-
       config = mkIf cfg.enable {
         users.users.${cfg.user} = {
           isSystemUser = true;
-          group = cfg.group;
+          inherit (cfg) group;
           home = cfg.dataDir;
         };
         users.groups.${cfg.group} = {};
-
         systemd.tmpfiles.rules = [
           "d ${cfg.dataDir} 0750 ${cfg.user} ${cfg.group} - -"
         ];
-
         systemd.services.zot = {
           description = "Zot OCI Container Registry";
           wantedBy = ["multi-user.target"];
@@ -480,48 +471,47 @@
             NoNewPrivileges = true;
           };
         };
-
-        services.prometheus.scrapeConfigs = mkIf cfg.enableLocalScraping [
-          {
-            job_name = "zot";
-            honor_labels = true;
-            metrics_path = effectiveSettings.extensions.metrics.prometheus.path or "/metrics";
-            basic_auth = mkIf cfg.metrics.enable {
-              username = cfg.metrics.user;
-              password = cfg.metrics.password;
+        services = {
+          prometheus.scrapeConfigs = mkIf cfg.enableLocalScraping [
+            {
+              job_name = "zot";
+              honor_labels = true;
+              metrics_path = effectiveSettings.extensions.metrics.prometheus.path or "/metrics";
+              basic_auth = mkIf cfg.metrics.enable {
+                username = cfg.metrics.user;
+                password = cfg.metrics.password;
+              };
+              static_configs = [
+                {
+                  targets = ["${effectiveSettings.http.address}:${effectiveSettings.http.port}"];
+                }
+              ];
+            }
+          ];
+          grafana.provision.dashboards.settings.providers = mkIf cfg.grafanaDashboard [
+            {
+              name = "zot";
+              options.path = pkgs.runCommand "zot-dashboards" {} ''
+                mkdir -p $out
+                cp ${./dashboard.json} $out/zot.json
+              '';
+            }
+          ];
+          nginx.virtualHosts.${cfg.nginx.domain} = mkIf cfg.nginx.enable {
+            forceSSL = cfg.nginx.forceSSL;
+            enableACME = cfg.nginx.acme;
+            acmeRoot = mkIf (cfg.nginx.acme && cfg.nginx.acmeDns01) null;
+            locations."/metrics" = {
+              return = "403";
             };
-            static_configs = [
-              {
-                targets = ["${effectiveSettings.http.address}:${effectiveSettings.http.port}"];
-              }
-            ];
-          }
-        ];
-
-        services.grafana.provision.dashboards.settings.providers = mkIf cfg.grafanaDashboard [
-          {
-            name = "zot";
-            options.path = pkgs.runCommand "zot-dashboards" {} ''
-              mkdir -p $out
-              cp ${./dashboard.json} $out/zot.json
-            '';
-          }
-        ];
-
-        services.nginx.virtualHosts.${cfg.nginx.domain} = mkIf cfg.nginx.enable {
-          forceSSL = cfg.nginx.forceSSL;
-          enableACME = cfg.nginx.acme;
-          acmeRoot = mkIf (cfg.nginx.acme && cfg.nginx.acmeDns01) null;
-          locations."/metrics" = {
-            return = "403";
-          };
-          locations."/" = {
-            proxyPass = "http://127.0.0.1:${effectiveSettings.http.port}/";
-            extraConfig = ''
-              client_max_body_size 0;
-              proxy_buffering off;
-              chunked_transfer_encoding on;
-            '';
+            locations."/" = {
+              proxyPass = "http://127.0.0.1:${effectiveSettings.http.port}/";
+              extraConfig = ''
+                client_max_body_size 0;
+                proxy_buffering off;
+                chunked_transfer_encoding on;
+              '';
+            };
           };
         };
       };

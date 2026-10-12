@@ -3,8 +3,7 @@
     lib,
     pkgs,
     ...
-  }: let
-  in {
+  }:{
     packages = {
       zot-docker-proxy = pkgs.buildGoModule {
         pname = "zot-docker-proxy";
@@ -136,7 +135,7 @@
         enabledInstances);
       users.users.${cfg.user} = {
         isSystemUser = true;
-        group = cfg.group;
+        inherit (cfg) group;
       };
       users.groups.${cfg.group} = {};
       systemd.services =

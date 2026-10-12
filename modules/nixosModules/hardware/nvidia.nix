@@ -66,7 +66,7 @@
         };
       }
       # If patch enabled, patch NVENC and FBC
-      (lib.mkIf (cfg.enablePatch) {
+      (lib.mkIf cfg.enablePatch {
         hardware.nvidia.package = pkgs.nvidia-patch.patch-nvenc (pkgs.nvidia-patch.patch-fbc cfg.package);
       })
       # If patch isn't enabled, use the chosen default nvidia package

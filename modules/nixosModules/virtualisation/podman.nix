@@ -113,27 +113,32 @@
             PODMAN_COMPOSE_WARNING_LOGS = "false";
           };
           # If notifications are set
-          systemd.services.podman-auto-update = lib.mkIf (cfg.autoUpdate.notificationENVFile != null) {
-            unitConfig = {
-              OnFailure = ["podman-auto-update-failure.service"];
+          systemd = {
+            services = {
+              podman-auto-update = lib.mkIf (cfg.autoUpdate.notificationENVFile != null) {
+                unitConfig = {
+                  OnFailure = ["podman-auto-update-failure.service"];
+                };
+                serviceConfig = {
+                  EnvironmentFile = cfg.autoUpdate.notificationENVFile;
+                  ExecStart = ["" "${smartUpdateScript}"]; # Clear and override default command
+                };
+              };
+              "podman-auto-update-failure" = lib.mkIf (cfg.autoUpdate.notificationENVFile != null) {
+                description = "Notify on total podman auto-update process failure";
+                serviceConfig = {
+                  Type = "oneshot";
+                  EnvironmentFile = cfg.autoUpdate.notificationENVFile;
+                  ExecStart = "${unitFailureScript}";
+                };
+              };
+
+              # Enables podman-restart on rootful & rootless user sockets
+              # Useful for containers outside the scope of Quadlet-nix
+              podman-restart.wantedBy = ["multi-user.target"];
             };
-            serviceConfig = {
-              EnvironmentFile = cfg.autoUpdate.notificationENVFile;
-              ExecStart = ["" "${smartUpdateScript}"]; # Clear and override default command
-            };
+            user.services.podman-restart.wantedBy = ["default.target"];
           };
-          systemd.services."podman-auto-update-failure" = lib.mkIf (cfg.autoUpdate.notificationENVFile != null) {
-            description = "Notify on total podman auto-update process failure";
-            serviceConfig = {
-              Type = "oneshot";
-              EnvironmentFile = cfg.autoUpdate.notificationENVFile;
-              ExecStart = "${unitFailureScript}";
-            };
-          };
-          # Enables podman-restart on rootful & rootless user sockets
-          # Useful for containers outside the scope of Quadlet-nix
-          systemd.services.podman-restart.wantedBy = ["multi-user.target"];
-          systemd.user.services.podman-restart.wantedBy = ["default.target"];
           virtualisation = {
             containers.enable = true;
             oci-containers.backend = "podman";

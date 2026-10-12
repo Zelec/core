@@ -19,6 +19,7 @@ validate:
 
 # Runs base config in VM
 test:
+  rm -f "/home/zelec/Temp/zelec-core-nixos-vmdisk.qcow2"
   nixos-rebuild --flake ./#Test-kde-x86_64-linux build-vm
   ./result/bin/run-nixos-vm
 

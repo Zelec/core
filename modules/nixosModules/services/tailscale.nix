@@ -39,7 +39,7 @@
       }
       # A bit of an experiment with bird and tailscale routes HA mode
       # https://tailscale.com/docs/features/subnet-routers/how-to/bgp
-      (lib.mkIf (cfg.subnetRouter.enable) {
+      (lib.mkIf cfg.subnetRouter.enable {
         services.tailscale = {
           useRoutingFeatures = "both";
           # Uses Bird to toggle and advertise the routes in HA mode
@@ -47,7 +47,7 @@
           extraSetFlags = [
             "--snat-subnet-routes=false"
             "--advertise-routes=${cfg.subnetRouter.advertisedRoutes}"
-            (lib.mkIf (cfg.subnetRouter.enableExitNode) "--advertise-exit-node=true")
+            (lib.mkIf cfg.subnetRouter.enableExitNode "--advertise-exit-node=true")
           ];
         };
         # BGP Daemon compatible with Tailscale
@@ -78,7 +78,7 @@
       (lib.mkIf (! cfg.subnetRouter.enable) {
         services.tailscale.useRoutingFeatures = "client";
       })
-      (lib.mkIf (config.networking.firewall.enable) {
+      (lib.mkIf config.networking.firewall.enable {
         networking.firewall.trustedInterfaces = ["tailscale0"];
       })
     ]);

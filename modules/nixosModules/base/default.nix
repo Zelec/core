@@ -57,13 +57,15 @@
           user.enable = lib.mkDefault cfgRoot.autoEnable;
         };
         programs.common-cli.enable = lib.mkDefault cfgRoot.autoEnable;
-        services.beszel-agent = {
-          enable = lib.mkDefault cfgRoot.autoEnable;
-          enableSmart = lib.mkDefault cfgRoot.autoEnable;
+        services = {
+          beszel-agent = {
+            enable = lib.mkDefault cfgRoot.autoEnable;
+            enableSmart = lib.mkDefault cfgRoot.autoEnable;
+          };
+          locate.enable = lib.mkDefault cfgRoot.autoEnable;
+          openssh.enable = lib.mkDefault cfgRoot.autoEnable;
+          stylix.enable = lib.mkDefault cfgRoot.autoEnable;
         };
-        services.locate.enable = lib.mkDefault cfgRoot.autoEnable;
-        services.openssh.enable = lib.mkDefault cfgRoot.autoEnable;
-        services.stylix.enable = lib.mkDefault cfgRoot.autoEnable;
       };
       programs.nix-index-database.comma.enable = lib.mkDefault cfgRoot.autoEnable;
       services.fstrim.enable = lib.mkDefault cfgRoot.autoEnable;
