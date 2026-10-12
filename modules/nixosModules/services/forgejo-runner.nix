@@ -103,6 +103,7 @@
           };
           tmpfiles.rules = [
             "v /runners-workspace 0755 gitea-runner gitea-runner - -"
+            "d /runners-workspace/base 0755 gitea-runner gitea-runner - -"
           ];
         };
 
@@ -145,8 +146,8 @@
                   force_pull = true;
                   privileged = false;
                   options = cfg.containerOptions;
-                  workdir_parent = "runners-workspace";
                 };
+                host.workdir_parent = "/runners-workspace/base/";
                 runner.capacity = 1;
               };
             };
@@ -154,12 +155,17 @@
         };
       }
       (lib.mkIf cfg.enablePrivilegedLabels {
-        systemd.services."gitea-runner-privileged" = {
-          serviceConfig = {
-            User = "gitea-runner";
-            Group = "gitea-runner";
-            DynamicUser = lib.mkForce false; # fix
+        systemd = {
+          services."gitea-runner-privileged" = {
+            serviceConfig = {
+              User = "gitea-runner";
+              Group = "gitea-runner";
+              DynamicUser = lib.mkForce false; # fix
+            };
           };
+          tmpfiles.rules = [
+            "d /runners-workspace/privileged 0755 gitea-runner gitea-runner - -"
+          ];
         };
         services.gitea-actions-runner.instances = {
           privileged = {
@@ -178,11 +184,11 @@
                 enabled = true;
                 host = cfg.cacheHost;
               };
+              host.workdir_parent = "/runners-workspace/privileged/";
               container = {
                 force_pull = true;
                 privileged = true;
                 options = cfg.containerOptions;
-                workdir_parent = "runners-workspace";
               };
               runner.capacity = 1;
             };
