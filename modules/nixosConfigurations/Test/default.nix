@@ -42,7 +42,6 @@
         };
       };
       hosts-Test-hyprland = {
-        zelec-core.testing = true;
         zelec-core.desktops.hyprland.enable = true;
       };
       hosts-Test-sway = {
@@ -63,6 +62,7 @@
         imports = [self.nixosModules.default];
         zelec-core = {
           autoEnable = true;
+          testing = true;
           base = {
             user = {
               hashedPasswordFile = "${pkgs.runCommand "test-password-hash" {} ''

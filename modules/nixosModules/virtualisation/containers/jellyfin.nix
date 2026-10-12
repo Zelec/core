@@ -36,13 +36,6 @@
       {
         assertions = [
           {
-            assertion = !cfgRoot.testing;
-            message = ''
-              The module `zelec-core.virtualisation.containers.jellyfin` is not fully done, if you
-              want to use this module you'll need to set `zelec-core.testing` to true
-            '';
-          }
-          {
             assertion = cfg.enable -> podmanEnabled;
             message = ''
               `zelec-core.virtualisation.containers.jellyfin` is enabled, but Podman is not active.
@@ -50,6 +43,10 @@
             '';
           }
         ];
+        warnings = lib.optional (!cfgRoot.testing) ''
+          The module `zelec-core.virtualisation.containers.jellyfin` is not fully done, if you
+          want to hide this warning you'll need to set `zelec-core.testing` to true
+        '';
       }
       (lib.mkIf cfg.enable {
         networking.firewall = {

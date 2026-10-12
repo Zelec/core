@@ -16,15 +16,10 @@
       enable = lib.mkEnableOption "Turns on Hyprland Desktop";
     };
     config = lib.mkIf cfg.enable {
-      assertions = [
-        {
-          assertion = !cfgRoot.testing;
-          message = ''
-            The module `zelec-core.desktops.hyprland` is not fully done, if you
-            want to use this module you'll need to set `zelec-core.testing` to true
-          '';
-        }
-      ];
+      warnings = lib.optional (!cfgRoot.testing) ''
+        The module `zelec-core.desktops.hyprland` is not fully done, if you
+        want to hide this warning you'll need to set `zelec-core.testing` to true
+      '';
       zelec-core = {
         services.pipewire.enable = lib.mkDefault true;
       };
