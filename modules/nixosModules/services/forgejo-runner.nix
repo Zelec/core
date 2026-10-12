@@ -79,7 +79,7 @@
             wget
           ]
           ++ lib.optionals config.zelec-core.virtualisation.docker.enable [docker docker-compose]
-          ++ lib.optionals config.zelec-core.virtualisation.podman.enable [podman podman-compose];
+          ++ lib.optionals config.zelec-core.virtualisation.podman.enable [podman podman-compose docker-compose];
       };
     };
     config = lib.mkIf cfg.enable (lib.mkMerge [
@@ -93,13 +93,19 @@
             ++ lib.optionals config.zelec-core.virtualisation.podman.enable ["podman"];
         };
         users.groups.gitea-runner = {};
-        systemd.services.gitea-runner-base = {
-          serviceConfig = {
-            User = "gitea-runner";
-            Group = "gitea-runner";
-            DynamicUser = lib.mkForce false;
+        systemd = {
+          services.gitea-runner-base = {
+            serviceConfig = {
+              User = "gitea-runner";
+              Group = "gitea-runner";
+              DynamicUser = lib.mkForce false;
+            };
           };
+          tmpfiles.rules = [
+            "v /runners-workspace 0755 gitea-runner gitea-runner - -"
+          ];
         };
+
         services.gitea-actions-runner = {
           package = pkgs.forgejo-runner;
           instances = {
@@ -139,6 +145,7 @@
                   force_pull = true;
                   privileged = false;
                   options = cfg.containerOptions;
+                  workdir_parent = "runners-workspace";
                 };
                 runner.capacity = 1;
               };
@@ -175,6 +182,7 @@
                 force_pull = true;
                 privileged = true;
                 options = cfg.containerOptions;
+                workdir_parent = "runners-workspace";
               };
               runner.capacity = 1;
             };
