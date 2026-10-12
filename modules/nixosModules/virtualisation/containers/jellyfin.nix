@@ -33,7 +33,7 @@
       };
     };
     config = lib.mkMerge [
-      {
+      (lib.mkIf cfg.enable {
         assertions = [
           {
             assertion = cfg.enable -> podmanEnabled;
@@ -47,8 +47,6 @@
           The module `zelec-core.virtualisation.containers.jellyfin` is not fully done, if you
           want to hide this warning you'll need to set `zelec-core.testing` to true
         '';
-      }
-      (lib.mkIf cfg.enable {
         networking.firewall = {
           allowedUDPPorts = [
             # Client AutoDiscover
