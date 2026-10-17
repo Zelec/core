@@ -36,6 +36,7 @@
               vscode-marketplace.ms-vscode-remote.remote-ssh-edit
             ];
             userSettings = {
+              "diffEditor.ignoreTrimWhitespace" = false;
               "editor.indentSize" = "tabSize";
               "editor.tabSize" = 2;
               "http.systemCertificatesNode" = true;

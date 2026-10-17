@@ -3,7 +3,7 @@
     lib,
     pkgs,
     ...
-  }:{
+  }: {
     packages = {
       zot-docker-proxy = pkgs.buildGoModule {
         pname = "zot-docker-proxy";

@@ -10,7 +10,11 @@
     flake-parts.url = "github:hercules-ci/flake-parts";
     # Import Tree to simplify nix file loading
     import-tree.url = "github:denful/import-tree";
+    # Git-Hooks for easy setup of pre-commit hooks for formatting
+    git-hooks.url = "github:cachix/git-hooks.nix";
+    git-hooks.inputs.nixpkgs.follows = "nixpkgs";
 
+    # NixOS modules
     # Attic, Nix Binary Cache server
     attic.url = "github:zhaofengli/attic";
     attic.inputs.nixpkgs.follows = "nixpkgs";

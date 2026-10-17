@@ -1,5 +1,6 @@
+.decrypted*
 .direnv/
+.pre-commit-config.yaml
 *.qcow2
 /result
 /result*
-.decrypted*

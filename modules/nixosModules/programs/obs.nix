@@ -25,8 +25,8 @@
 
         # optional Nvidia hardware acceleration
         package = pkgs.obs-studio.override {
-            cudaSupport = cfg.enableCUDA;
-          };
+          cudaSupport = cfg.enableCUDA;
+        };
 
         plugins = with pkgs.obs-studio-plugins; [
           wlrobs
