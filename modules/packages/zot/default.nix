@@ -1,11 +1,7 @@
 # Taken from https://github.com/ijohanne/nur-packages/
 # Touched up to upgrade to 2.1.17
 {self, ...}: {
-  perSystem = {
-    pkgs,
-    lib,
-    ...
-  }: {
+  perSystem = {pkgs, ...}: {
     packages = {
       zot = let
         # Zot ui

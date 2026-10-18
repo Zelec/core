@@ -1,11 +1,7 @@
 # The stuff here in the base modules folder was based off of Goxore's nixconf flake
 # Or as he is known on youtube Vimjoyer
 # https://github.com/Goxore/nixconf/blob/8065ed5479d78b716c9a45057ff7742f31e70b1d/modules/nixosModules/base/user.nix
-{
-  inputs,
-  self,
-  ...
-}: {
+{inputs, ...}: {
   flake.nixosModules.base-user = {
     config,
     pkgs,
@@ -181,6 +177,14 @@
             };
             direnv = {
               enable = true;
+              config = {
+                global = {
+                  # Removes all extra logs from direnv starting up
+                  # Really it's just the final flourish of var mess when it starts up that is annoying, the rest is fine
+                  # but ehh whatever this works for now until I want to figure that out
+                  log_filter = "^$";
+                };
+              };
               enableBashIntegration = true;
               nix-direnv.enable = true;
             };

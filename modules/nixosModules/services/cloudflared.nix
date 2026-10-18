@@ -41,7 +41,8 @@
         description = "Path to argo tunnel token certificate file";
       };
       tunnels = lib.mkOption {
-        type = lib.types.attrsOf (lib.types.submodule ({name, ...}: {
+        # deadnix: skip
+        type = lib.types.attrsOf (lib.types.submodule ({_name, ...}: {
           options = {
             credentialsFile = lib.mkOption {type = lib.types.path;};
             defaultEndpoint = lib.mkOption {
@@ -71,7 +72,7 @@
         enable = true;
         inherit (cfg) certificateFile;
         tunnels =
-          lib.mapAttrs (uuid: tunnelCfg: {
+          lib.mapAttrs (_uuid: tunnelCfg: {
             inherit (tunnelCfg) credentialsFile default;
             ingress = lib.mapAttrs (processIngress tunnelCfg.defaultEndpoint) tunnelCfg.ingress;
           })

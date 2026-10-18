@@ -46,7 +46,7 @@
             overlays =
               defaultOverlays
               ++ [
-                (final: prev: {
+                (_final: prev: {
                   unstable = import inputs.nixpkgs-unstable {
                     system = prev.stdenv.hostPlatform.system;
                     config = baseNixPkgConfig;

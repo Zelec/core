@@ -125,7 +125,16 @@
               filesystems = ["/"];
             };
             cloudflared = {
+              enable = true;
               certificateFile = toString pkgs.emptyFile;
+              tunnels = {
+                "00000000-0000-0000-0000-000000000000" = {
+                  credentialsFile = toString pkgs.emptyFile;
+                  ingress = {
+                    "example.com" = null;
+                  };
+                };
+              };
             };
             ddclient = {
               configOptions = "";

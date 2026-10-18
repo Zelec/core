@@ -1,12 +1,7 @@
 # Caddy Container
 # Autoenabled with config.zelec-core.virtualisation.containers.enableDefaultContainers = true;
 # and thus via config.zelec-core.autoEnable = true;
-{
-  inputs,
-  self,
-  lib,
-  ...
-}: {
+{self, ...}: {
   perSystem = {pkgs, ...}: let
     # Output hash of the caddy src plus plugins below
     # last reason this changed: Nixpkg updates, probably Go updates

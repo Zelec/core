@@ -61,7 +61,7 @@
         enabledInstances);
 
       systemd.services = lib.mkMerge (lib.mapAttrsToList (
-          name: instanceCfg: let
+          _name: instanceCfg: let
             # Dynamically build the list of service dependencies
             networkServices = map (net: "docker-network-${instanceCfg.projectName}_${net}.service") instanceCfg.networkNames;
             volumeServices = map (vol: "docker-volume-${instanceCfg.projectName}_${vol}.service") instanceCfg.volumeNames;

@@ -4,7 +4,6 @@
   };
   flake.nixosModules.services-btrfs-scrub = {
     config,
-    options,
     lib,
     ...
   }: let

@@ -9,6 +9,7 @@
   }: let
     cfgRoot = config.zelec-core;
     cfg = cfgRoot.services.zot;
+    # deadnix: skip
     instanceOptions = {name, ...}: {
       options = {
         enable = lib.mkEnableOption "this zot docker proxy instance";
@@ -98,7 +99,7 @@
       };
     };
     config = lib.mkIf cfg.enable {
-      zelec-core.virtualisation.containers.caddy.virtualHosts = lib.mapAttrs' (name: instanceCfg:
+      zelec-core.virtualisation.containers.caddy.virtualHosts = lib.mapAttrs' (_name: instanceCfg:
         lib.nameValuePair instanceCfg.domain {
           extraConfig = ''
             import base_config
@@ -117,7 +118,7 @@
       cfg.docker-proxy.instances;
       services.zot-docker-proxy = {
         instances =
-          lib.mapAttrs (name: instanceCfg: {
+          lib.mapAttrs (name: _instanceCfg: {
             configFile = "/run/zot-docker-proxy/${name}.conf";
           })
           cfg.docker-proxy.instances;

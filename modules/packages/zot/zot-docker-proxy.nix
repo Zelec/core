@@ -1,9 +1,5 @@
 {self, ...}: {
-  perSystem = {
-    lib,
-    pkgs,
-    ...
-  }: {
+  perSystem = {pkgs, ...}: {
     packages = {
       zot-docker-proxy = pkgs.buildGoModule {
         pname = "zot-docker-proxy";
@@ -51,6 +47,7 @@
         default = {};
         type = lib.types.attrsOf (lib.types.submodule ({
             name,
+            # deadnix: skip
             config ? {},
             ...
           } @ submoduleArgs: let
@@ -145,7 +142,7 @@
               description = "Zot-Docker-Proxy instance: ${name}";
               wantedBy = ["multi-user.target"];
               after = ["network.target"];
-              environment = lib.mkIf (instanceCfg.configFile == null) (lib.filterAttrs (n: v: v != null) {
+              environment = lib.mkIf (instanceCfg.configFile == null) (lib.filterAttrs (_n: v: v != null) {
                 LOG_LEVEL = instanceCfg.logLevel;
                 PORT =
                   if instanceCfg.port != null

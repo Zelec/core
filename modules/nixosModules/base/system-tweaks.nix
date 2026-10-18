@@ -1,9 +1,5 @@
 # System tweaks/tunables
-{
-  inputs,
-  self,
-  ...
-}: {
+_: {
   flake.nixosModules.base-system-tweaks = {
     config,
     lib,

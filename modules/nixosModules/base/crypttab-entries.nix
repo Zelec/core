@@ -1,12 +1,7 @@
 # Manager for /etc/crypttab entries
-{
-  inputs,
-  self,
-  ...
-}: {
+_: {
   flake.nixosModules.base-crypttab-entries = {
     config,
-    pkgs,
     lib,
     ...
   }: let
