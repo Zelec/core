@@ -21,6 +21,11 @@
         type = lib.types.str;
         default = "zelec";
       };
+      homePath = lib.mkOption {
+        description = "User's home folder directory'";
+        type = lib.types.str;
+        default = "/home/${cfg.name}";
+      };
       description = lib.mkOption {
         description = "Display name for the user account";
         type = lib.types.str;
@@ -45,6 +50,7 @@
     config = lib.mkIf cfg.enable {
       users.users.${cfg.name} = {
         inherit (cfg) description hashedPasswordFile;
+        home = cfg.homePath;
         linger = true;
         isNormalUser = true;
         extraGroups = [
@@ -57,6 +63,9 @@
         packages = with pkgs; [
         ];
       };
+      systemd.tmpfiles.rules = [
+        "v ${cfg.homePath}/Temp 0755 ${cfg.name} users - -"
+      ];
       # Homemanager Stuff
       home-manager = {
         useGlobalPkgs = true;
@@ -68,7 +77,7 @@
             stateVersion = "24.11";
 
             username = cfg.name;
-            homeDirectory = "/home/${cfg.name}";
+            homeDirectory = cfg.homePath;
 
             packages = with pkgs; [
             ];
