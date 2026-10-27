@@ -8,11 +8,11 @@
     "enabled": true,
     "automerge": true,
     "schedule": [
-      "before 4am on monday"
+      "* 2 * * 1"
     ]
   },
   "automergeSchedule": [
-    "before 4am on tuesday"
+    "* 2 * * 2"
   ],
   "nix": {
     "enabled": true
