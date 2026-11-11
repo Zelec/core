@@ -169,18 +169,30 @@
                 PS1='\[\e[${ps1MainColour}\][\u@\h\[\e[${ps1DefaultColour}\] \[\e[${ps1DefaultColour}\]\W\[\e[${ps1MainColour}\]]\$\[\e[${ps1DefaultColour}\] ';
                 # Gitignore creator
                 gi() {
-                  curl -sL "https://www.gitignore.io/api/$@"
+                  ${pkgs.curl}/bin/curl -sL "https://www.gitignore.io/api/$@"
                 }
+
+                # BTRFS Scrub watch commands
+                btrfs-scrub-watch() {
+                  /run/wrappers/bin/sudo FOLDER="''${@%/}" ${pkgs.procps}/bin/watch 'for dir in "$FOLDER"/*/; do ${pkgs.coreutils}/bin/echo "$dir" && ${pkgs.btrfs-progs}/bin/btrfs scrub status "$dir" && ${pkgs.coreutils}/bin/echo ""; done'
+                }
+
+                btrfs-scrub-start() {
+                  /run/wrappers/bin/sudo FOLDER="''${@%/}" ${pkgs.bash}/bin/bash -c 'for dir in "$FOLDER"/*/; do ${pkgs.btrfs-progs}/bin/btrfs scrub start "$dir"; done'
+                }
+
 
                 # Container upgrade via watchtower
                 watchtower() {
+                  WATCHTOWER_IMAGE="docker.io/nickfedor/watchtower:latest"
                   if [ ! -f "$HOME/.docker/config.json" ]; then
-                    mkdir -p "$HOME/.docker"
-                    touch "$HOME/.docker/config.json"
-                    echo "{}" >> "$HOME/.docker/config.json"
+                    ${pkgs.coreutils}/bin/mkdir -p "$HOME/.docker"
+                    ${pkgs.coreutils}/bin/touch "$HOME/.docker/config.json"
+                    ${pkgs.coreutils}/bin/echo "{}" >> "$HOME/.docker/config.json"
                   fi
-                  docker pull docker.io/nickfedor/watchtower:latest
-                  docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v "$HOME/.docker/config.json":/config.json:ro docker.io/nickfedor/watchtower:latest --run-once
+                  # Leaves the path to be either docker/podman depening on the box
+                  docker pull "$WATCHTOWER_IMAGE"
+                  docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v "$HOME/.docker/config.json":/config.json:ro "$WATCHTOWER_IMAGE" --run-once
                 }
               '';
             };
